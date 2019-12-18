@@ -33,10 +33,12 @@ export default class App extends React.Component {
         </Panel>
         <CanvasList canvas_list={[]} />
         <Panel />*/
+        /*<SvgScroll /> */
   render() {
     return (
       <View style={styles.Screen}>
-        <SvgScroll />
+        <ColorEdit />
+        
       </View>
     );
   }

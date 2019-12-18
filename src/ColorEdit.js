@@ -3,6 +3,7 @@ import Svg, {
   Circle,
   Path,
   LinearGradient,
+  RadialGradient,
   Defs,
   Stop,
   Use,
@@ -97,8 +98,19 @@ export class ColorEdit extends React.Component {
 
   render() {
     let w = 400;
-    let h = 400;
+    let h = 650;
     let f = 80;
+    const shadowOpt = {
+      width: 160,
+      height: 170,
+      color: '#000',
+      border: 2,
+      radius: 3,
+      opacity: 0.2,
+      x: 0,
+      y: 3,
+      style: {marginVertical: 5},
+    };
     return (
       <Svg style={{flex: 1}} height={h} width={w} viewBox={`0 0 ${w} ${h}`}>
         <Defs>
@@ -142,6 +154,67 @@ export class ColorEdit extends React.Component {
             <Stop offset="0.25" stopColor="rgb(0,0,0)" stopOpacity="1" />
           </LinearGradient>
 
+          <LinearGradient
+            id="shadow_vertical"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="0%">
+            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0" />
+            <Stop offset="0.5" stopColor="rgb(0,0,0)" stopOpacity="1" />
+            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="0" />
+          </LinearGradient>
+          <LinearGradient
+            id="shadow_horizontal"
+            x1="0%"
+            y1="0%"
+            x2="0%"
+            y2="100%">
+            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0" />
+            <Stop offset="0.5" stopColor="rgb(0,0,0)" stopOpacity="1" />
+            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="0" />
+          </LinearGradient>
+          <RadialGradient
+            id="shadow_corner_1"
+            cx="100%"
+            cy="100%"
+            rx="95%"
+            ry="95%">
+            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="1" />
+            <Stop offset="0.5" stopColor="rgb(120,120,120)" stopOpacity="1" />
+            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient
+            id="shadow_corner_2"
+            cx="0%"
+            cy="100%"
+            rx="95%"
+            ry="95%">
+            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="1" />
+            <Stop offset="0.5" stopColor="rgb(120,120,120)" stopOpacity="1" />
+            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient
+            id="shadow_corner_3"
+            cx="100%"
+            cy="0%"
+            rx="95%"
+            ry="95%">
+            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="1" />
+            <Stop offset="0.5" stopColor="rgb(120,120,120)" stopOpacity="1" />
+            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient
+            id="shadow_corner_4"
+            cx="0%"
+            cy="0%"
+            rx="95%"
+            ry="95%">
+            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="1" />
+            <Stop offset="0.5" stopColor="rgb(120,120,120)" stopOpacity="1" />
+            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0" />
+          </RadialGradient>
+
           <Mask id="template" x={0} y={0} width={w} height={h}>
             <Rect
               stroke="#FFF"
@@ -155,7 +228,73 @@ export class ColorEdit extends React.Component {
             />
           </Mask>
         </Defs>
+        <G id="shadows">
+          <Rect
+            x={f / 2 - f / 3}
+            y={f / 2}
+            width={f / 1.5}
+            height={h - f}
+            fill="url(#shadow_vertical)"
+            stroke="none"
+          />
+          <Rect
+            x={f / 2 - f / 3 + w - f}
+            y={f / 2}
+            width={f / 1.5}
+            height={h - f}
+            fill="url(#shadow_vertical)"
+            stroke="none"
+          />
+          <Rect
+            x={f / 2}
+            y={f / 2 - f / 3}
+            width={w - f}
+            height={f / 1.5}
+            fill="url(#shadow_horizontal)"
+            stroke="none"
+          />
+          <Rect
+            x={f / 2}
+            y={f / 2 - f / 3 + h - f}
+            width={w - f}
+            height={f / 1.5}
+            fill="url(#shadow_horizontal)"
+            stroke="none"
+          />
 
+          <Rect
+            x={f / 2 - f / 3}
+            y={f / 2 - f / 3}
+            width={f / 1.5}
+            height={f / 1.5}
+            fill="url(#shadow_corner_1)"
+            stroke="none"
+          />
+          <Rect
+            x={w - f / 2 - f / 3}
+            y={f / 2 - f / 3}
+            width={f / 1.5}
+            height={f / 1.5}
+            fill="url(#shadow_corner_2)"
+            stroke="none"
+          />
+          <Rect
+            x={f / 2 - f / 3}
+            y={h - f / 2 - f / 3}
+            width={f / 1.5}
+            height={f / 1.5}
+            fill="url(#shadow_corner_3)"
+            stroke="none"
+          />
+          <Rect
+            x={w-f / 2 - f / 3}
+            y={h- f / 2 - f / 3}
+            width={f / 1.5}
+            height={f / 1.5}
+            fill="url(#shadow_corner_4)"
+            stroke="none"
+          />
+        </G>
         <G mask="url(#template)">
           <Path
             d={`M ${0 + f / 2} ${0 + f / 2} H ${w / 2}`}
