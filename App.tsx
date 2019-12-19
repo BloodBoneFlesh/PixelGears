@@ -1,12 +1,12 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View, ScrollView } from 'react-native';
 
-import {Panel} from './src/Panel';
-import {CanvasList} from './src/Canvas';
-import {styles} from './styles';
-import {Palette} from './src/Palette';
-import {ColorEdit} from './src/ColorEdit'
-import {SvgScroll} from './src/SvgScroll'
+import { Panel } from './src/Panel';
+import { CanvasList } from './src/Canvas';
+import { styles } from './styles';
+import { Palette } from './src/Palette';
+import { ColorEdit } from './src/ColorEdit'
+import { SvgScroll } from './src/SvgScroll'
 //import styles from './styles';
 
 export default class App extends React.Component {
@@ -28,17 +28,15 @@ export default class App extends React.Component {
     +-?controls
  */
 
- /*<Panel>
-          <Palette />
-        </Panel>
-        <CanvasList canvas_list={[]} />
-        <Panel />*/
-        /*<SvgScroll /> */
+  /*<Panel>
+           <Palette />
+         </Panel>
+         <CanvasList canvas_list={[]} />
+         <Panel />*/
   render() {
     return (
       <View style={styles.Screen}>
-        <ColorEdit />
-        
+        <SvgScroll />
       </View>
     );
   }

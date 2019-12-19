@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {PanResponder} from 'react-native';
-import Svg, {Path, Circle, Text as SvgText} from 'react-native-svg';
+import Svg, {Path, Circle, Text as SvgText, Rect} from 'react-native-svg';
 
 /*https://facebook.github.io/react-native/docs/panresponder*/
 let pathElement;
@@ -30,19 +30,22 @@ export class SvgScroll extends Component {
     });
   }
   _handlePanResponderMove(evt, gestureState) {
-    /*let result = this.findRelatedOnPath(
+    let result = this.findRelatedOnPath(
       evt.nativeEvent.locationX,
       evt.nativeEvent.locationY,
     );
-    if (result)*/
-    this.setState({
-      position: {x: evt.nativeEvent.locationX, y: evt.nativeEvent.locationY},
-    });
+    if (result)
+      this.setState({
+        position: {x: result.x, y: result.y},
+      });
   }
   componentDidMount() {
     this.definePathStart();
   }
   findRelatedOnPath(x, y) {
+     // TODO
+
+
     for (let point of this.state.pathPoints) {
       if (point.x > x) return point;
     }
@@ -76,7 +79,8 @@ export class SvgScroll extends Component {
   }
 
   getTotalLength() {
-    return 2000; //this._found({x: 50, y: 200}, 0, 2000);
+    console.warn(this.pathElement.getTotalLength());
+    return this.pathElement.getTotalLength();
   }
 
   _found(trigger, x1, x2, debug = false) {
@@ -118,31 +122,30 @@ export class SvgScroll extends Component {
   render() {
     return (
       /* without viewBox */
-      /* path should be drawn first somewhy */
+      /* path should be drawn first somehow */
 
       <Svg style={{flex: 1}}>
         <SvgText x="20" y="35">
           x: {this.state.position.x} y:{this.state.position.y}
         </SvgText>
-        <Path
-          {...this._panResponder.panHandlers}
+
+        <Rect
           ref={element => (this.pathElement = element)}
-          d={`M 100 50 H 250 
-            A 50 50 0 0 1 300 100 V 250
-            A 50 50 0 0 1 250 300 H 100
-            A 50 50 0 0 1 50 250 V 100
-            A 50 50 0 0 1 100 50 Z`}
-          stroke="black"
-          strokeWidth={3}
+          stroke="#FFF"
           fill="none"
-          onPress={() => {
-            console.warn('onPress rect');
-          }}
+          strokeWidth={5}
+          width={300}
+          height={300}
+          x={50}
+          y={50}
+          ry={50}
         />
+
         <Circle
           cx={this.state.position.x}
           cy={this.state.position.y}
           r={this.state.size.radius}
+          {...this._panResponder.panHandlers}
         />
       </Svg>
     );
