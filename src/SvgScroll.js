@@ -71,7 +71,6 @@ export class SvgScroll extends Component {
     ) {
       points.push(this.pathElement.getPointAtLength(i));
     }
-
     this.setState({
       position: points[0],
       pathPoints: points,
@@ -131,11 +130,11 @@ export class SvgScroll extends Component {
 
         <Rect
           ref={element => (this.pathElement = element)}
-          stroke="#FFF"
+          stroke="#000"
           fill="none"
           strokeWidth={5}
-          width={300}
-          height={300}
+          width={150}
+          height={150}
           x={50}
           y={50}
           ry={50}

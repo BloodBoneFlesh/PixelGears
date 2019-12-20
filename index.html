@@ -1,28 +1,65 @@
 <html>
-  <head>
-    <style>
-      body {
-        background-color: white;
-        background-image: linear-gradient(
-            45deg,
-            black 25%,
-            transparent 25%,
-            transparent 74%,
-            black 75%,
-            black
-          ),
-          linear-gradient(
-            45deg,
-            black 25%,
-            transparent 25%,
-            transparent 74%,
-            black 75%,
-            black
-          );
-        background-size: 6px 6px;
-        background-position: 0 0, 3px 3px;
+
+<head>
+  <style>
+    body {
+      background-color: white;
+      background-image: linear-gradient(45deg,
+          black 25%,
+          transparent 25%,
+          transparent 74%,
+          black 75%,
+          black),
+        linear-gradient(45deg,
+          black 25%,
+          transparent 25%,
+          transparent 74%,
+          black 75%,
+          black);
+      background-size: 6px 6px;
+      background-position: 0 0, 3px 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    class Node {
+      constructor(value) {
+        this.value = value;
+        this.left = null;
+        this.right = null;
       }
-    </style>
-  </head>
-  <body></body>
+
+      add(value) {
+        if (value >= this.value) {
+          if (this.right)
+            this.right.add(value);
+          else
+            this.right = new Node(value);
+        } else {
+          if (this.left)
+            this.left.add(value);
+          else
+            this.left = new Node(value);
+        }
+      }
+    }
+
+    class BST {
+      constructor() {
+        this.root = null;
+      }
+
+      add(value) {
+        if (this.root) {
+          this.root.add(value);
+        } else {
+          this.root = new Node(value);
+        }
+      }
+    }
+  </script>
+</body>
+
 </html>
