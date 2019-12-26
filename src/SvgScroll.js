@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
-import { PanResponder } from 'react-native';
-import Svg, { Path, G, Circle, Text as SvgText, Rect } from 'react-native-svg';
+import React, {Component} from 'react';
+import {PanResponder} from 'react-native';
+import Svg, {Path, G, Circle, Text as SvgText, Rect} from 'react-native-svg';
 
 /*https://facebook.github.io/react-native/docs/panresponder*/
 let pathElement;
@@ -36,7 +36,7 @@ export class SvgScroll extends Component {
     );
     if (result)
       this.setState({
-        position: { x: result.x, y: result.y },
+        position: {x: result.x, y: result.y},
       });
   }
   componentDidMount() {
@@ -44,7 +44,6 @@ export class SvgScroll extends Component {
   }
   findRelatedOnPath(x, y) {
     // TODO
-
 
     for (let point of this.state.pathPoints) {
       if (point.x > x) return point;
@@ -118,13 +117,6 @@ export class SvgScroll extends Component {
     }
   }
 
-  /*
-  
-    1 = | x |^m + | y |^n
-        | a |     | b |
-  
-  */
-
   sgn(w) {
     if (w > 0) return 1;
     if (w < 0) return -1;
@@ -136,30 +128,36 @@ export class SvgScroll extends Component {
   }
 
   calculate(angle, a, b, m, n) {
-    let x = Math.pow(Math.abs(Math.cos(angle)), 2 / m) * a * this.sgn(Math.cos(angle));
-    let y = Math.pow(Math.abs(Math.sin(angle)), 2 / n) * b * this.sgn(Math.sin(angle));
-    return { x, y };
+    let x =
+      Math.pow(Math.abs(Math.cos(angle)), 2 / m) *
+      a *
+      this.sgn(Math.cos(angle));
+    let y =
+      Math.pow(Math.abs(Math.sin(angle)), 2 / n) *
+      b *
+      this.sgn(Math.sin(angle));
+    return {x, y};
   }
 
   render() {
     let width = 200;
     let height = 400;
 
-    let c1 = this.calculate(0*Math.PI/180 , 100, 200, 5, 5);
-    let c2 = this.calculate(180*Math.PI/180, 100, 200, 5, 5);
-    let c3 = this.calculate(30*Math.PI/180, 100, 200, 5, 5);
-    let c4 = this.calculate(15*Math.PI/180, 100, 200, 5, 5);
-    let c5 = this.calculate(45*Math.PI/180, 100, 200, 5, 5);
-    let c6 = this.calculate(60*Math.PI/180, 100, 200, 5, 5);
-    let c7 = this.calculate(75*Math.PI/180, 100, 200, 5, 5);
-    let c8 = this.calculate(90*Math.PI/180, 100, 200, 5, 5);
-    let c9 = this.calculate(270*Math.PI/180, 100, 200, 5, 5);
+    let c1 = this.calculate((0 * Math.PI) / 180, 100, 200, 5, 5);
+    let c2 = this.calculate((180 * Math.PI) / 180, 100, 200, 5, 5);
+    let c3 = this.calculate((30 * Math.PI) / 180, 100, 200, 5, 5);
+    let c4 = this.calculate((15 * Math.PI) / 180, 100, 200, 5, 5);
+    let c5 = this.calculate((45 * Math.PI) / 180, 100, 200, 5, 5);
+    let c6 = this.calculate((60 * Math.PI) / 180, 100, 200, 5, 5);
+    let c7 = this.calculate((75 * Math.PI) / 180, 100, 200, 5, 5);
+    let c8 = this.calculate((90 * Math.PI) / 180, 100, 200, 5, 5);
+    let c9 = this.calculate((270 * Math.PI) / 180, 100, 200, 5, 5);
 
     return (
       /* without viewBox */
       /* path should be drawn first somehow */
 
-      <Svg style={{ flex: 1 }}>
+      <Svg style={{flex: 1}}>
         <SvgText x="20" y="35">
           x: {this.state.position.x} y:{this.state.position.y}
         </SvgText>
@@ -184,55 +182,22 @@ export class SvgScroll extends Component {
             {...this._panResponder.panHandlers}
           />
 
-          <Circle
-            cx={c1.x+ width / 2}
-            cy={c1.y + height / 2}
-            r={5}
-          />
+          <Circle cx={c1.x + width / 2} cy={c1.y + height / 2} r={5} />
 
-          <Circle
-            cx={c2.x+ width / 2}
-            cy={c2.y + height / 2}
-            r={5}
-          />
+          <Circle cx={c2.x + width / 2} cy={c2.y + height / 2} r={5} />
 
-          <Circle
-            cx={c3.x + width / 2}
-            cy={c3.y + height / 2}
-            r={5}
-          />
+          <Circle cx={c3.x + width / 2} cy={c3.y + height / 2} r={5} />
 
-          <Circle
-            cx={c4.x+ width / 2}
-            cy={c4.y + height / 2}
-            r={5}
-          />
+          <Circle cx={c4.x + width / 2} cy={c4.y + height / 2} r={5} />
 
-          <Circle
-            cx={c5.x+ width / 2}
-            cy={c5.y + height / 2}
-            r={5}
-          /><Circle
-            cx={c6.x+ width / 2}
-            cy={c6.y + height / 2}
-            r={5}
-          /><Circle
-            cx={c7.x+ width / 2}
-            cy={c7.y + height / 2}
-            r={5}
-          /><Circle
-            cx={c8.x+ width / 2}
-            cy={c8.y + height / 2}
-            r={5}
-          /><Circle
-            cx={c9.x+ width / 2}
-            cy={c9.y + height / 2}
-            r={5}
-          />
+          <Circle cx={c5.x + width / 2} cy={c5.y + height / 2} r={5} />
+          <Circle cx={c6.x + width / 2} cy={c6.y + height / 2} r={5} />
+          <Circle cx={c7.x + width / 2} cy={c7.y + height / 2} r={5} />
+          <Circle cx={c8.x + width / 2} cy={c8.y + height / 2} r={5} />
+          <Circle cx={c9.x + width / 2} cy={c9.y + height / 2} r={5} />
         </G>
-
       </Svg>
     );
   }
 }
-2
+2;
