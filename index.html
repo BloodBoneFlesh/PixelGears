@@ -26,9 +26,38 @@
         background: white;
       }
       .cell {
-        width: 30px;
-        height: 30px;
-        border: 1px solid gray;
+        width: 25px;
+        height: 25px;
+        border: 1px solid darkgrey;
+        margin: 2px;
+      }
+
+      .input_container{
+        height: 20px;
+        width: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 4px;
+      }
+
+      .input_cell{
+        height: 15px;
+        width: 15px;
+        border: 1px solid darkgrey;
+        cursor: pointer;
+      }
+
+      .input {
+        display: none;
+      }
+
+      .input:checked ~ .input_cell {
+        border: 5px solid darkgrey;
+      }
+
+      td{
+        border-left: 1px solid black;
       }
     </style>
 
@@ -101,14 +130,34 @@
           return (
             <tr>
               <td>{this.props.pallete.id}</td>
-              <td style={{display: 'flex', flexDirection: 'row'}}>
+              <td style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                 {this.props.pallete.colors.map((i, c) => (
                   <Cell color={i} key={c} />
                 ))}
               </td>
-              <td>{this.props.pallete.marks}</td>
-              <td>{this.props.pallete.description}</td>
+              <td> <ColorPanel marks={this.props.pallete.marks}/></td>
+              <td> <div style={{height: '25px', overflow: 'auto'}}> {this.props.pallete.description} </div> </td>
             </tr>
+          );
+        }
+      }
+
+      class ColorPanel extends React.Component{
+        colors = [ 'red', 'orange','yellow','green','aqua','blue','pink','purple','brown','grey','white','black']
+       
+        render() {
+          //return React.createElement('div',{style: {display: 'flex', flexDirection: 'row'}},elements,);
+          return (
+            <div style={{display: 'flex', flexDirection: 'row'}}>
+              { this.colors.map( (i) =>  (<div className="input_container" key={i}>
+                  <label>
+                      <input  className="input" type="checkbox" checked={ this.props.marks.includes(i) }/> 
+                      <div className="input_cell"  style={{background: i}}></div>
+                    </label>
+                </div> )
+                )
+              }
+            </div>
           );
         }
       }
