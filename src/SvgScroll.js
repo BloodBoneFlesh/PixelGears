@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { PanResponder } from 'react-native';
-import Svg, { Path, G, Circle, Text as SvgText, Rect } from 'react-native-svg';
+import Svg, { Path, G, Circle, Text as SvgText, Rect, Line } from 'react-native-svg';
 
 /*https://facebook.github.io/react-native/docs/panresponder*/
 let pathElement;
@@ -14,10 +14,15 @@ export class SvgScroll extends Component {
       position: {
         x: 0,
         y: 0,
+        angle: 0,
+        mouse_x: 0,
+        mouse_y: 0
       },
       size: {
         radius: 15,
         pathLength: 40,
+        width: 250,
+        height: 400
       },
       pathPoints: [],
     };
@@ -30,29 +35,22 @@ export class SvgScroll extends Component {
     });
   }
   _handlePanResponderMove(evt, gestureState) {
+    
     let result = this.findRelatedOnPath(
       evt.nativeEvent.locationX,
       evt.nativeEvent.locationY,
     );
     if (result)
       this.setState({
-        position: { x: result.x, y: result.y },
+        position: { x: result.x, y: result.y, angle: result.angle, mouse_x: evt.nativeEvent.locationX,  mouse_y: evt.nativeEvent.locationY },
       });
   }
   componentDidMount() {
     this.definePathStart();
   }
   findRelatedOnPath(x, y) {
-    // TODO
-
-
-    for (let point of this.state.pathPoints) {
-      if (point.x > x) return point;
-    }
-    for (let point of this.state.pathPoints) {
-      if (point.y > y) return point;
-    }
-    return false;
+    let angle = this.angle(x, y);
+    return {...this.calculatePolar(angle, this.state.size.width / 2, this.state.size.height / 2, 5), angle};
   }
   definePathStart() {
     // eslint-disable-next-line prettier/prettier
@@ -60,70 +58,10 @@ export class SvgScroll extends Component {
     //let result = regex.exec(this.path.props.d);
     //return {cx: result[1], cy: result[2]};
 
-    //this.state.pan.setValue(this.pathElement.getPointAtLength(0));
-
-    pathTotalLength = this.getTotalLength();
-    let points = [];
-    for (
-      let i = 0;
-      i < pathTotalLength;
-      i += pathTotalLength / this.state.size.pathLength
-    ) {
-      points.push(this.pathElement.getPointAtLength(i));
-    }
     this.setState({
-      position: points[0],
-      pathPoints: points,
+      position: this.calculatePolar(0, this.state.size.width / 2, this.state.size.height / 2, 5)
     });
   }
-
-  getTotalLength() {
-    console.warn(this.pathElement.getTotalLength());
-    return this.pathElement.getTotalLength();
-  }
-
-  _found(trigger, x1, x2, debug = false) {
-    let middle = Math.floor(x1 + (x2 - x1) / 2);
-    if (x2 < 1) return 0;
-    let middle_point = this.pathElement.getPointAtLength(middle);
-    if (middle_point.x == trigger.x && middle_point.y == trigger.y) {
-      if (debug)
-        console.log(`1 : ${this.pathElement.getPointAtLength(middle)}`);
-      let middle_minus_point = this.pathElement.getPointAtLength(middle - 1);
-      if (
-        middle_minus_point.x != trigger.x ||
-        middle_minus_point.y != trigger.y
-      ) {
-        if (debug) console.log(`check range ${x1} : ${middle}`);
-        return this._found(trigger, x1, middle);
-      } else {
-        return middle;
-      }
-    } else {
-      let x2_point = this.pathElement.getPointAtLength(x2);
-      if (x2_point.x == trigger.x && x2_point.y == trigger.y) {
-        if (debug) console.log(`2 : ${this.pathElement.getPointAtLength(x2)}`);
-
-        let x2_minus_point = this.pathElement.getPointAtLength(x2 - 1);
-        if (x2_minus_point.x != trigger.x || x2_minus_point.y != trigger.y) {
-          return x2;
-        } else {
-          if (debug) console.log(`check range ${middle} : ${x2}`);
-          return this._found(trigger, middle, x2);
-        }
-      } else {
-        if (debug) console.log(`3 : ${this.pathElement.getPointAtLength(x2)}`);
-        console.log('Check in debug mode');
-      }
-    }
-  }
-
-  /*
-  
-    1 = | x |^m + | y |^n
-        | a |     | b |
-  
-  */
 
   sgn(w) {
     if (w > 0) return 1;
@@ -132,36 +70,83 @@ export class SvgScroll extends Component {
   }
 
   angle(x, y) {
-    return Math.atan(y / x);
+    let center = {x:this.state.size.width / 2, y: this.state.size.height / 2}
+    let AC = { x: center.x - x, y: center.y - y }
+    let BC = { x: center.x - x, y: 0 }
+    let result = Math.acos( ( AC.x * BC.x + AC.y * BC.y ) / ( Math.sqrt( AC.x * AC.x + AC.y * AC.y ) * Math.sqrt( BC.x * BC.x + BC.y * BC.y ))) * (180 / Math.PI) 
+    //result in 1st quadrant
+    if ( x > center.x && y < center.y ) // 4th quadrant
+      result = 360 - result
+    else 
+      if ( x < center.x && y < center.y ) // 3rd quadrant
+        result += 180
+      else 
+        if ( x < center.x && y > center.y ) // 2nd quadrant
+          result = 180 - result
+    
+    return result;
   }
 
   calculate(angle, a, b, m, n) {
-    let x = Math.pow(Math.abs(Math.cos(angle)), 2 / m) * a * this.sgn(Math.cos(angle));
-    let y = Math.pow(Math.abs(Math.sin(angle)), 2 / n) * b * this.sgn(Math.sin(angle));
-    return { x, y };
+    let pp = -Math.abs(Math.sin(angle*Math.PI/45))+1
+    //console.warn(pp)
+    angle = angle * Math.PI/180;
+    let x = Math.pow(Math.cos(angle), 2 / m) * a;
+    //let x = Math.pow(Math.abs(Math.cos(angle)), 2 / m) * a * this.sgn(Math.cos(angle));
+    let y = Math.pow(Math.sin(angle), 2 / n) * b ;
+    //let y = Math.pow(Math.abs(Math.sin(angle)), 2 / n) * b * this.sgn(Math.sin(angle));
+    return { x: x + a, y: y + b };
+  }
+
+  calculatePolar(angle, a, b, n) {
+    //http://frink.machighway.com/~dynamicm/super-ellipse.html
+    angle = angle * Math.PI/180;
+
+    let r = Math.pow( 
+        Math.pow( Math.abs(Math.cos(angle) / a), n  ) + 
+        Math.pow( Math.abs(Math.sin(angle) / b), n  ),
+        -1 / n
+        );
+    return { x: Math.cos(angle) * r + a, 
+      y: Math.sin(angle) * r + b };
   }
 
   render() {
-    let width = 200;
-    let height = 400;
-
-    let c1 = this.calculate(0*Math.PI/180 , 100, 200, 5, 5);
-    let c2 = this.calculate(180*Math.PI/180, 100, 200, 5, 5);
-    let c3 = this.calculate(30*Math.PI/180, 100, 200, 5, 5);
-    let c4 = this.calculate(15*Math.PI/180, 100, 200, 5, 5);
-    let c5 = this.calculate(45*Math.PI/180, 100, 200, 5, 5);
-    let c6 = this.calculate(60*Math.PI/180, 100, 200, 5, 5);
-    let c7 = this.calculate(75*Math.PI/180, 100, 200, 5, 5);
-    let c8 = this.calculate(90*Math.PI/180, 100, 200, 5, 5);
-    let c9 = this.calculate(270*Math.PI/180, 100, 200, 5, 5);
+    let c0 = this.calculate(0, this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    let c1 = this.calculate(10 , this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    let c2 = this.calculate(20, this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    let c3 = this.calculate(30 , this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    let c4 = this.calculate(40 , this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    let c5 = this.calculate(50 , this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    let c6 = this.calculate(60 , this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    let c7 = this.calculate(70 , this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    let c8 = this.calculate(80, this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    let c9 = this.calculate(90, this.state.size.width / 2, this.state.size.height / 2, 5, 5)
+    
+    let r0 = this.calculatePolar(0  , this.state.size.width / 2, this.state.size.height / 2, 5)
+    let r1 = this.calculatePolar(10  , this.state.size.width / 2, this.state.size.height / 2, 5)
+    let r2 = this.calculatePolar(20  , this.state.size.width / 2, this.state.size.height / 2, 5)
+    let r3 = this.calculatePolar(30  , this.state.size.width / 2, this.state.size.height / 2, 5)
+    let r4 = this.calculatePolar(40  , this.state.size.width / 2, this.state.size.height / 2, 5)
+    let r5 = this.calculatePolar(50  , this.state.size.width / 2, this.state.size.height / 2, 5)
+    let r6 = this.calculatePolar(60  , this.state.size.width / 2, this.state.size.height / 2, 5)
+    let r7 = this.calculatePolar(70  , this.state.size.width / 2, this.state.size.height / 2, 5)
+    let r8 = this.calculatePolar(80  , this.state.size.width / 2, this.state.size.height / 2, 5)
+    let r9 = this.calculatePolar(90  , this.state.size.width / 2, this.state.size.height / 2, 5)
 
     return (
       /* without viewBox */
       /* path should be drawn first somehow */
 
       <Svg style={{ flex: 1 }}>
+        <SvgText x="20" y="75">
+          x: {this.state.position.mouse_x} y:{this.state.position.mouse_y}
+        </SvgText>
         <SvgText x="20" y="35">
           x: {this.state.position.x} y:{this.state.position.y}
+        </SvgText>
+        <SvgText x="20" y="55">
+          angle: {this.state.position.angle}
         </SvgText>
         <G x={10} y={10}>
           <Path
@@ -169,11 +154,11 @@ export class SvgScroll extends Component {
             stroke="#000"
             fill="none"
             strokeWidth={5}
-            d={`M ${width / 2} 0 
-                C ${width} 0 ${width} 0 ${width} ${height / 2} 
-                  ${width} ${height} ${width} ${height} ${width / 2} ${height} 
-                  0 ${height} 0 ${height} 0 ${height / 2} 
-                  0 0 0 0 ${width / 2} 0
+            d={`M ${this.state.size.width / 2} 0 
+                C ${this.state.size.width} 0 ${this.state.size.width} 0 ${this.state.size.width} ${this.state.size.height / 2} 
+                  ${this.state.size.width} ${this.state.size.height} ${this.state.size.width} ${this.state.size.height} ${this.state.size.width / 2} ${this.state.size.height} 
+                  0 ${this.state.size.height} 0 ${this.state.size.height} 0 ${this.state.size.height / 2} 
+                  0 0 0 0 ${this.state.size.width / 2} 0
                   `}
           />
 
@@ -184,50 +169,136 @@ export class SvgScroll extends Component {
             {...this._panResponder.panHandlers}
           />
 
-          <Circle
-            cx={c1.x+ width / 2}
-            cy={c1.y + height / 2}
-            r={5}
+          <Line
+            x1={c0.x}
+            x2={this.state.size.width / 2}
+            y1={c0.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
+          />
+          <Line
+            x1={c1.x}
+            x2={this.state.size.width / 2}
+            y1={c1.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
+          />
+          <Line
+            x1={c2.x}
+            x2={this.state.size.width / 2}
+            y1={c2.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
+          />
+          <Line
+            x1={c3.x}
+            x2={this.state.size.width / 2}
+            y1={c3.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
+          />
+          <Line
+            x1={c4.x}
+            x2={this.state.size.width / 2}
+            y1={c4.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
+          />
+          <Line
+            x1={c5.x}
+            x2={this.state.size.width / 2}
+            y1={c5.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
+          />
+          <Line
+            x1={c6.x}
+            x2={this.state.size.width / 2}
+            y1={c6.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
+          />
+          <Line
+            x1={c7.x}
+            x2={this.state.size.width / 2}
+            y1={c7.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
+          />
+          <Line
+            x1={c8.x}
+            x2={this.state.size.width / 2}
+            y1={c8.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
+          />
+          <Line
+            x1={c9.x}
+            x2={this.state.size.width / 2}
+            y1={c9.y}
+            y2={this.state.size.height / 2}
+            stroke="black"
           />
 
           <Circle
-            cx={c2.x+ width / 2}
-            cy={c2.y + height / 2}
+            cx={r0.x}
+            cy={r0.y}
             r={5}
+            fill="red"
           />
-
           <Circle
-            cx={c3.x + width / 2}
-            cy={c3.y + height / 2}
+            cx={r1.x}
+            cy={r1.y}
             r={5}
+            fill="red"
           />
-
           <Circle
-            cx={c4.x+ width / 2}
-            cy={c4.y + height / 2}
+            cx={r2.x}
+            cy={r2.y}
             r={5}
+            fill="red"
           />
-
           <Circle
-            cx={c5.x+ width / 2}
-            cy={c5.y + height / 2}
+            cx={r3.x}
+            cy={r3.y}
             r={5}
-          /><Circle
-            cx={c6.x+ width / 2}
-            cy={c6.y + height / 2}
+            fill="red"
+          />
+          <Circle
+            cx={r4.x}
+            cy={r4.y}
             r={5}
-          /><Circle
-            cx={c7.x+ width / 2}
-            cy={c7.y + height / 2}
+            fill="red"
+          />
+          <Circle
+            cx={r5.x}
+            cy={r5.y}
             r={5}
-          /><Circle
-            cx={c8.x+ width / 2}
-            cy={c8.y + height / 2}
+            fill="red"
+          />
+          <Circle
+            cx={r6.x}
+            cy={r6.y}
             r={5}
-          /><Circle
-            cx={c9.x+ width / 2}
-            cy={c9.y + height / 2}
+            fill="red"
+          />
+          <Circle
+            cx={r7.x}
+            cy={r7.y}
             r={5}
+            fill="red"
+          />
+          <Circle
+            cx={r8.x}
+            cy={r8.y}
+            r={5}
+            fill="red"
+          />
+          <Circle
+            cx={r9.x}
+            cy={r9.y}
+            r={5}
+            fill="red"
           />
         </G>
 
