@@ -8,6 +8,8 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     flex: 1,
+    justifyContent: 'center',
+    alignContent: 'center',
   },
   Panel: {
     display: 'flex',

@@ -1,109 +1,131 @@
 import * as React from 'react';
+
+import { PanResponder } from 'react-native';
 import Svg, {
   Circle,
   Path,
   LinearGradient,
-  RadialGradient,
   Defs,
   Stop,
   Use,
+  Line,
   Mask,
-  Rect,
   G,
 } from 'react-native-svg';
 
-import {SvgScroll} from './SvgScroll';
+import { SvgScroll } from './SvgScroll';
 
 export class ColorEdit extends React.Component {
   constructor(props) {
     super(props);
     this.changeColor = this.changeColor.bind(this);
+
+    this.state = {
+      R: 0,
+      G: 0,
+      B: 0,
+      position: {
+        x: 0,
+        y: 0,
+      },
+      size: {
+        radius: 8,
+        width: 250,
+        height: 400,
+        margin: 20
+      },
+      color: '#FFF',
+    };
+    this._handlePanResponderMove = this._handlePanResponderMove.bind(this);
+  }
+  componentWillMount() {
+    this._panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: this._handlePanResponderMove,
+    });
+  }
+  _handlePanResponderMove(evt, gestureState) {
+    let result = this.calculatePolar(this.angle(evt.nativeEvent.locationX, evt.nativeEvent.locationY),
+      (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
+
+    if (result)
+      this.setState({
+        position: { x: result.x, y: result.y, },
+      });
+  }
+  componentDidMount() {
+    this.setState({
+      position: this.calculatePolar(0, (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
+    });
+  }
+  angle(x, y) {
+    let center = { x: this.state.size.width / 2, y: this.state.size.height / 2 }
+    let AC = { x: center.x - x, y: center.y - y }
+    let BC = { x: center.x - x, y: 0 }
+    let result = Math.acos((AC.x * BC.x + AC.y * BC.y) / (Math.sqrt(AC.x * AC.x + AC.y * AC.y) * Math.sqrt(BC.x * BC.x + BC.y * BC.y))) * (180 / Math.PI)
+    //result in 1st quadrant
+    if (x > center.x && y < center.y) // 4th quadrant
+      result = 360 - result
+    else
+      if (x < center.x && y < center.y) // 3rd quadrant
+        result += 180
+      else
+        if (x < center.x && y > center.y) // 2nd quadrant
+          result = 180 - result
+
+    return result;
   }
 
-  state = {
-    R: 0,
-    G: 0,
-    B: 0,
-    values: [
-      '0',
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      'A',
-      'B',
-      'C',
-      'D',
-      'E',
-      'F',
-    ],
-    angle: 2.995,
-    current_angle: 0,
-    margin: 5,
-    color: '#FFF',
-  };
+  calculatePolar(angle, a, b, n) {
+    //http://frink.machighway.com/~dynamicm/super-ellipse.html
+    angle = angle * Math.PI / 180;
 
-  element(R, G, B) {
-    this.state.current_angle += this.state.angle;
-    let radius = this.props.radius;
-
-    let left_far =
-      Math.cos((this.state.current_angle * Math.PI) / 180) * radius +
-      radius +
-      this.state.margin;
-    let top_far =
-      Math.sin((this.state.current_angle * Math.PI) / 180) * radius +
-      radius +
-      +this.state.margin;
-
-    let left_inner =
-      (Math.cos((this.state.current_angle * Math.PI) / 180) * radius) / 2 +
-      radius +
-      +this.state.margin;
-    let top_inner =
-      (Math.sin((this.state.current_angle * Math.PI) / 180) * radius) / 2 +
-      radius +
-      this.state.margin;
-
-    return (
-      <Path
-        d={`M ${left_far} ${top_far} L ${left_inner} ${top_inner}`}
-        stroke={
-          '#' +
-          this.state.values[R] +
-          this.state.values[G] +
-          this.state.values[B]
-        }
-        strokeWidth={10}
-        onPressIn={() =>
-          this.changeColor(
-            '#' +
-              this.state.values[R] +
-              this.state.values[G] +
-              this.state.values[B],
-          )
-        }
-      />
+    let r = Math.pow(
+      Math.pow(Math.abs(Math.cos(angle) / a), n) +
+      Math.pow(Math.abs(Math.sin(angle) / b), n),
+      -1 / n
     );
+    return {
+      x: Math.cos(angle) * r + a + this.state.size.margin / 2,
+      y: Math.sin(angle) * r + b + this.state.size.margin / 2
+    };
   }
 
   changeColor(NewColor) {
-    this.setState({color: NewColor});
+    this.setState({ color: NewColor });
   }
 
+/*  <View style={{ flex: 1 }}></View>
+        <Svg style={{ margin: 30, flex: 1 }}>
+        <Defs>
+          <Path
+            id="shape"
+            fill="none"
+            d={`M ${90} 0 
+                C ${180} 0 ${180} 0 ${180} ${90} 
+                  ${180} ${180} ${180} ${180} ${90} ${180} 
+                  0 ${180} 0 ${180} 0 ${90} 
+                  0 0 0 0 ${90} 0
+                  `}
+          />
+        </Defs>
+          <SvgScroll
+            type="superellipse"
+            path="shape"
+            pathSVG="shape"
+            width={200}
+            height={200}
+            callback={(x: Object) => JSON.stringify(x)} />
+        </Svg> */
+
   render() {
-    let w = 400; /* border rect width */
-    let h = 600; /* border rect height */
-    let f = 80; /* border line width */
-    let s_dx = -2; /* shadow dx*/
+    let w = this.state.size.width; /* border rect width */
+    let h = this.state.size.height; /* border rect height */
+    let f = this.state.size.margin; /* border line width */
+    let s_dx = -1; /* shadow dx*/
     let s_dy = 1; /* shadow dy*/
     return (
-      <Svg style={{flex: 1}} height={h} width={w} viewBox={`0 0 ${w} ${h}`}>
+      <Svg style={{ flex: 1 }} height={h} width={w} viewBox={`0 0 ${w} ${h}`}>
         <Defs>
           <LinearGradient id="black_red" x1="0%" y1="0%" x2="100%" y2="0%">
             <Stop offset="0.25" stopColor="rgb(0,0,0)" stopOpacity="1" />
@@ -145,153 +167,52 @@ export class ColorEdit extends React.Component {
             <Stop offset="0.25" stopColor="rgb(0,0,0)" stopOpacity="1" />
           </LinearGradient>
 
-          <LinearGradient
-            id="shadow_vertical"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="0%">
-            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0" />
-            <Stop offset="0.5" stopColor="rgb(0,0,0)" stopOpacity="1" />
-            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="0" />
+          <LinearGradient id="pointer_fill" x1="0%" y1="0%" x2="0%" y2="100%">
+            <Stop offset="1" stopColor="rgb(120,120,120)" stopOpacity="1" />
+            <Stop offset="0" stopColor="rgb(240,240,240)" stopOpacity="1" />
           </LinearGradient>
-          <LinearGradient
-            id="shadow_horizontal"
-            x1="0%"
-            y1="0%"
-            x2="0%"
-            y2="100%">
-            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0" />
-            <Stop offset="0.5" stopColor="rgb(0,0,0)" stopOpacity="1" />
-            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="0" />
-          </LinearGradient>
-          <RadialGradient
-            id="shadow_corner_1"
-            cx="100%"
-            cy="100%"
-            rx="95%"
-            ry="95%">
-            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="1" />
-            <Stop offset="0.5" stopColor="rgb(120,120,120)" stopOpacity="1" />
-            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0.5" />
-          </RadialGradient>
-          <RadialGradient
-            id="shadow_corner_2"
-            cx="0%"
-            cy="100%"
-            rx="95%"
-            ry="95%">
-            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="1" />
-            <Stop offset="0.5" stopColor="rgb(120,120,120)" stopOpacity="1" />
-            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0.5" />
-          </RadialGradient>
-          <RadialGradient
-            id="shadow_corner_3"
-            cx="100%"
-            cy="0%"
-            rx="95%"
-            ry="95%">
-            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="1" />
-            <Stop offset="0.5" stopColor="rgb(120,120,120)" stopOpacity="1" />
-            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0.5" />
-          </RadialGradient>
-          <RadialGradient
-            id="shadow_corner_4"
-            cx="0%"
-            cy="0%"
-            rx="95%"
-            ry="95%">
-            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="1" />
-            <Stop offset="0.5" stopColor="rgb(120,120,120)" stopOpacity="1" />
-            <Stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0.5" />
-          </RadialGradient>
+
+          <Path
+            id="shape"
+            fill="none"
+            d={`M ${(w - f) / 2} 0 
+                C ${(w - f)} 0 ${(w - f)} 0 ${(w - f)} ${(h - f) / 2} 
+                  ${(w - f)} ${(h - f)} ${(w - f)} ${(h - f)} ${(w - f) / 2} ${(h - f)} 
+                  0 ${(h - f)} 0 ${(h - f)} 0 ${(h - f) / 2} 
+                  0 0 0 0 ${(w - f) / 2} 0
+                  `}
+          />
 
           <Mask id="template" x={0} y={0} width={w} height={h}>
-            <Rect
+            <Path
               stroke="#FFF"
               fill="none"
+              x={f / 2} y={f / 2}
               strokeWidth={f / 3}
-              width={w - f}
-              height={h - f}
-              x={f / 2}
-              y={f / 2}
-              ry={f / 2}
+              d={`M ${(w - f) / 2} 0 
+                C ${(w - f)} 0 ${(w - f)} 0 ${(w - f)} ${(h - f) / 2} 
+                  ${(w - f)} ${(h - f)} ${(w - f)} ${(h - f)} ${(w - f) / 2} ${(h - f)} 
+                  0 ${(h - f)} 0 ${(h - f)} 0 ${(h - f) / 2} 
+                  0 0 0 0 ${(w - f) / 2} 0
+                  `}
             />
           </Mask>
         </Defs>
-        <G id="shadows">
-          <Rect
-            x={s_dx + f / 2 - f / 3}
-            y={s_dy + f / 2}
-            width={f / 1.5}
-            height={h - f}
-            fill="url(#shadow_vertical)"
-            stroke="none"
-          />
-          <Rect
-            x={s_dx + f / 2 - f / 3 + w - f}
-            y={s_dy + f / 2}
-            width={f / 1.5}
-            height={h - f}
-            fill="url(#shadow_vertical)"
-            stroke="none"
-          />
-          <Rect
-            x={s_dx + f / 2}
-            y={s_dy + f / 2 - f / 3}
-            width={w - f}
-            height={f / 1.5}
-            fill="url(#shadow_horizontal)"
-            stroke="none"
-          />
-          <Rect
-            x={s_dx + f / 2}
-            y={s_dy + f / 2 - f / 3 + h - f}
-            width={w - f}
-            height={f / 1.5}
-            fill="url(#shadow_horizontal)"
-            stroke="none"
-          />
-
-          <Rect
-            x={s_dx + f / 2 - f / 3}
-            y={s_dy + f / 2 - f / 3}
-            width={f / 1.5}
-            height={f / 1.5}
-            fill="url(#shadow_corner_1)"
-            stroke="none"
-          />
-          <Rect
-            x={s_dx + w - f / 2 - f / 3}
-            y={s_dy + f / 2 - f / 3}
-            width={f / 1.5}
-            height={f / 1.5}
-            fill="url(#shadow_corner_2)"
-            stroke="none"
-          />
-          <Rect
-            x={s_dx + f / 2 - f / 3}
-            y={s_dy + h - f / 2 - f / 3}
-            width={f / 1.5}
-            height={f / 1.5}
-            fill="url(#shadow_corner_3)"
-            stroke="none"
-          />
-          <Rect
-            x={s_dx + w - f / 2 - f / 3}
-            y={s_dy + h - f / 2 - f / 3}
-            width={f / 1.5}
-            height={f / 1.5}
-            fill="url(#shadow_corner_4)"
-            stroke="none"
-          />
+        <G id="shadows" x={f / 2 + s_dx} y={f / 2 + s_dy}>
+          {[
+            'FFF0', 'EEE1', 'DDD2', 'CCC3', 'BBB4', 'AAA5', '9996', '8887',
+            '7778', '6669', '555A', '444B', '333C', '222D', '111E', '000F'].map((e, i) => {
+              return <Use href="#shape" stroke={`#${e}`} strokeWidth={f / 3 + 6 - i * 0.5} />
+            }
+            )
+          }
         </G>
         <G mask="url(#template)">
           <Path
             d={`M ${0 + f / 2} ${0 + f / 2} H ${w / 2}`}
             fill="none"
             stroke="url(#black_red)"
-            strokeWidth={f}
+            strokeWidth={f * 3}
             strokeLinejoin="round"
             strokeLinecap="round"
           />
@@ -299,7 +220,7 @@ export class ColorEdit extends React.Component {
             d={`M ${w / 2} ${f / 2} H ${w - f / 2}`}
             fill="none"
             stroke="url(#red_yellow)"
-            strokeWidth={f}
+            strokeWidth={f * 3}
             strokeLinejoin="round"
             strokeLinecap="round"
           />
@@ -307,7 +228,7 @@ export class ColorEdit extends React.Component {
             d={`M ${w - f / 2} ${f / 2} V ${h / 2}`}
             fill="none"
             stroke="url(#yellow_green)"
-            strokeWidth={f}
+            strokeWidth={f * 3}
             strokeLinejoin="round"
             strokeLinecap="round"
           />
@@ -315,7 +236,7 @@ export class ColorEdit extends React.Component {
             d={`M ${w - f / 2} ${h / 2} V ${h - f / 2}`}
             fill="none"
             stroke="url(#green_aqua)"
-            strokeWidth={f}
+            strokeWidth={f * 3}
             strokeLinejoin="round"
             strokeLinecap="round"
           />
@@ -323,7 +244,7 @@ export class ColorEdit extends React.Component {
             d={`M ${w - f / 2} ${h - f / 2} H ${w / 2}`}
             fill="none"
             stroke="url(#aqua_blue)"
-            strokeWidth={f}
+            strokeWidth={f * 3}
             strokeLinejoin="round"
             strokeLinecap="round"
           />
@@ -331,7 +252,7 @@ export class ColorEdit extends React.Component {
             d={`M ${w / 2} ${h - f / 2} H ${f / 2}`}
             fill="none"
             stroke="url(#blue_pink)"
-            strokeWidth={f}
+            strokeWidth={f * 3}
             strokeLinejoin="round"
             strokeLinecap="round"
           />
@@ -340,7 +261,7 @@ export class ColorEdit extends React.Component {
             d={`M ${f / 2} ${h - f / 2} V ${h / 2}`}
             fill="none"
             stroke="url(#pink_white)"
-            strokeWidth={f}
+            strokeWidth={f * 3}
             strokeLinejoin="round"
             strokeLinecap="round"
           />
@@ -348,65 +269,54 @@ export class ColorEdit extends React.Component {
             d={`M ${f / 2} ${h / 2} V ${f / 2}`}
             fill="none"
             stroke="url(#white_black)"
-            strokeWidth={f}
+            strokeWidth={f * 3}
             strokeLinejoin="round"
             strokeLinecap="round"
           />
         </G>
-      </Svg>
+        <G id="pointer">
+          {[
+            'FFF0', 'EEE1', 'DDD2', 'CCC3', 'BBB4', 'AAA5', '9996', '8887',
+            '7778', '6669', '555A', '444B', '333C', '222D', '111E', '000F'].map((e, i) => {
+              return (
+                
+                <Circle
+                  cx={this.state.position.x}
+                  cy={this.state.position.y}
+                  r={this.state.size.radius}
+                  fill='none'
+                  stroke={`#${e}`}
+                  strokeWidth={this.state.size.radius*1.5  - i *1.2}
+                />
+              )
+            }
+            )
+          }
+          <Circle
+            cx={this.state.position.x}
+            cy={this.state.position.y}
+            r={this.state.size.radius}
+            fill="url(#pointer_fill)"
+            stroke="none"
+            {...this._panResponder.panHandlers}
+          />
+          
+        </G>
 
-      /*
-      <G>
-        <Use href="#arrow_back" x="50" y="275" />
-        <Use href="#arrow_forward" x="100" y="275" />
-      </G>
-      */
+        <G>
+          <Line />
+          <Circle
+            cx={20}
+            cy={20}
+            r={this.state.size.radius}
+            fill="url(#pointer_fill)"
+            stroke="none"
+            {...this._panResponder.panHandlers}
+          />
+        </G>
 
-      /*
-      <Svg style={{flex: 1}}>
-        <Circle
-          style={{zIndex: -10}}
-          cx={this.props.radius + 5}
-          cy={this.props.radius + 5}
-          r={this.props.radius}
-          stroke="black"
-          fill="none"
-          strokeWidth={5}
-        />
-        {[...new Array(15)].map(() =>
-          this.element(this.state.R++, this.state.G, this.state.B),
-        )}
-        {[...new Array(15)].map(() =>
-          this.element(this.state.R, this.state.G++, this.state.B),
-        )}
-        {[...new Array(15)].map(() =>
-          this.element(this.state.R--, this.state.G, this.state.B),
-        )}
-        {[...new Array(15)].map(() =>
-          this.element(this.state.R, this.state.G, this.state.B++),
-        )}
-        {[...new Array(15)].map(() =>
-          this.element(this.state.R, this.state.G--, this.state.B),
-        )}
-        {[...new Array(15)].map(() =>
-          this.element(this.state.R++, this.state.G, this.state.B),
-        )}
-        {[...new Array(15)].map(() =>
-          this.element(this.state.R, this.state.G++, this.state.B),
-        )}
-        {[...new Array(15)].map(() =>
-          this.element(this.state.R--, this.state.G--, this.state.B--),
-        )}
-        <Circle
-          cx={this.props.radius + this.state.margin}
-          cy={this.props.radius + this.state.margin}
-          r={this.props.radius / 2}
-          stroke="black"
-          fill={this.state.color}
-          strokeWidth={this.state.margin / 2}
-        />
+       
       </Svg>
-      */
     );
   }
 }

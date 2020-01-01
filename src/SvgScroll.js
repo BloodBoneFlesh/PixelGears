@@ -1,23 +1,36 @@
 import React, { Component } from 'react';
 import { PanResponder } from 'react-native';
-import Svg, { Path, G, Circle, Text as SvgText, Rect, Line } from 'react-native-svg';
+import Svg, {
+  Path, G, Circle, Line, Defs, LinearGradient,
+  Stop, RadialGradient,
+  Use,
+} from 'react-native-svg';
 
 /*https://facebook.github.io/react-native/docs/panresponder*/
 let pathElement;
 
 export class SvgScroll extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
+      /* line / superellipse */
+      type: props.type,
+      path: props.path,
+      pathSVG: props.pathSVG,
+      callback: props.callback,
       position: {
         x: 0,
         y: 0,
       },
       size: {
-        radius: 15,
-        pathLength: 40,
-        width: 250,
-        height: 400
+        radius: 9,
+        width: props.width,
+        height: props.height,
+        margin: 20
+      },
+      line: {
+        start: props.lineStart,
+        end: props.lineEnd,
       },
       pathPoints: [],
     };
@@ -30,16 +43,31 @@ export class SvgScroll extends Component {
     });
   }
   _handlePanResponderMove(evt, gestureState) {
-    let result = this.calculatePolar(this.angle(evt.nativeEvent.locationX, evt.nativeEvent.locationY), this.state.size.width / 2, this.state.size.height / 2, 5)
+    let result;
+    if(this.state.type == 'superellipse')
+       result = this.calculatePolar(this.angle(evt.nativeEvent.locationX, evt.nativeEvent.locationY),
+      (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
 
-    if (result)
+      else
+      result = this.calculateLine(evt.nativeEvent.locationX, evt.nativeEvent.locationY)
+    
+
+    if (result){
       this.setState({
         position: { x: result.x, y: result.y, },
       });
+      this.state.callback(this.state.position)
+    }
   }
   componentDidMount() {
+    let result;
+    if(this.state.type == 'superellipse')
+      result =  this.calculatePolar(0, (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
+    else
+      result = this.calculateLine(evt.nativeEvent.locationX, evt.nativeEvent.locationY)
+    
     this.setState({
-      position: this.calculatePolar(0, this.state.size.width / 2, this.state.size.height / 2, 5)
+      position: { x: result.x, y: result.y, },
     });
   }
 
@@ -61,6 +89,14 @@ export class SvgScroll extends Component {
     return result;
   }
 
+  calculateLine(x, y){
+    if( x < this.state.line.start )
+      return { x: this.state.line.start, y: this.state.position.y }
+    if( x > this.state.line.end )
+      return { x: this.state.line.end, y: thisthis.state.position.y }
+    return { x: x, y: thisthis.state.position.y }
+  }
+
   calculatePolar(angle, a, b, n) {
     //http://frink.machighway.com/~dynamicm/super-ellipse.html
     angle = angle * Math.PI / 180;
@@ -71,42 +107,64 @@ export class SvgScroll extends Component {
       -1 / n
     );
     return {
-      x: Math.cos(angle) * r + a,
-      y: Math.sin(angle) * r + b
+      x: Math.cos(angle) * r + a + this.state.size.margin / 2,
+      y: Math.sin(angle) * r + b + this.state.size.margin / 2
     };
   }
 
   render() {
+    let w = this.state.size.width; /* border rect width */
+    let h = this.state.size.height; /* border rect height */
+    let f = this.state.size.margin; /* border line width */
+    let s_dx = -1; /* shadow dx*/
+    let s_dy = 1; /* shadow dy*/
+
     return (
       /* without viewBox */
       /* path should be drawn first somehow */
 
-      <Svg style={{ flex: 1 }}>
-        <SvgText x="20" y="35">
-          x: {this.state.position.x} y:{this.state.position.y}
-        </SvgText>
-        <G x={10} y={10}>
-          <Path
-            ref={element => (this.pathElement = element)}
-            stroke="#000"
-            fill="none"
-            strokeWidth={5}
-            d={`M ${this.state.size.width / 2} 0 
-                C ${this.state.size.width} 0 ${this.state.size.width} 0 ${this.state.size.width} ${this.state.size.height / 2} 
-                  ${this.state.size.width} ${this.state.size.height} ${this.state.size.width} ${this.state.size.height} ${this.state.size.width / 2} ${this.state.size.height} 
-                  0 ${this.state.size.height} 0 ${this.state.size.height} 0 ${this.state.size.height / 2} 
-                  0 0 0 0 ${this.state.size.width / 2} 0
-                  `}
-          />
+      <G>
+        <Defs>
+          <LinearGradient id="pointer_fill" x1="0%" y1="0%" x2="0%" y2="100%">
+            <Stop offset="0" stopColor="rgb(240,240,240)" stopOpacity="1" />
+            <Stop offset="1" stopColor="rgb(120,120,120)" stopOpacity="1" />
+          </LinearGradient>
+          <RadialGradient id="pointer_shadow">
+            <Stop offset="0.75" stopColor="rgb(0,0,0)" stopOpacity="1" />
+            <Stop offset="1" stopColor="rgb(255,255,255)" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <G>
+          <G id="shadows" x={f / 2 + s_dx} y={f / 2 + s_dy}>
+            {[
+              'FFF0', 'EEE1', 'DDD2', 'CCC3', 'BBB4', 'AAA5', '9996', '8887',
+              '7778', '6669', '555A', '444B', '333C', '222D', '111E', '000F'].map((e, i) => {
+                return <Use href={`#${this.state.path}`} stroke={`#${e}`} strokeWidth={f / 3 + 6 - i * 0.5} />
+              }
+              )
+            }
+          </G>
+          <Use x={f / 2} y={f / 2} href={`#${this.state.pathSVG}`} stroke={`#0F0`} strokeWidth={5} />
 
-          <Circle
-            cx={this.state.position.x}
-            cy={this.state.position.y}
-            r={this.state.size.radius}
-            {...this._panResponder.panHandlers}
-          />
+          <G id="pointer">
+            <Circle
+              cx={this.state.position.x}
+              cy={this.state.position.y}
+              r={this.state.size.radius*1.3}
+              fill="url(#pointer_shadow)"
+              stroke="none"
+            />
+            <Circle
+              cx={this.state.position.x}
+              cy={this.state.position.y}
+              r={this.state.size.radius}
+              fill="url(#pointer_fill)"
+              stroke="none"
+              {...this._panResponder.panHandlers}
+            />
+          </G>
         </G>
-      </Svg>
+      </G>
     );
   }
 }

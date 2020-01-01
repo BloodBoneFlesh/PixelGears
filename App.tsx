@@ -7,6 +7,12 @@ import { styles } from './styles';
 import { Palette } from './src/Palette';
 import { ColorEdit } from './src/ColorEdit'
 import { SvgScroll } from './src/SvgScroll'
+import Svg, {
+  Path, G, Circle, Line, Defs, LinearGradient,
+  Stop, RadialGradient,
+  Use,
+} from 'react-native-svg';
+
 //import styles from './styles';
 
 export default class App extends React.Component {
@@ -36,7 +42,8 @@ export default class App extends React.Component {
   render() {
     return (
       <View style={styles.Screen}>
-        <SvgScroll />
+        <ColorEdit />
+
       </View>
     );
   }
