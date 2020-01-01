@@ -183,31 +183,12 @@ export class ColorEdit extends React.Component {
                   `}
           />
 
-          <Mask id="template" x={0} y={0} width={w} height={h}>
-            <Path
-              stroke="#FFF"
-              fill="none"
-              x={f / 2} y={f / 2}
-              strokeWidth={f / 3}
-              d={`M ${(w - f) / 2} 0 
-                C ${(w - f)} 0 ${(w - f)} 0 ${(w - f)} ${(h - f) / 2} 
-                  ${(w - f)} ${(h - f)} ${(w - f)} ${(h - f)} ${(w - f) / 2} ${(h - f)} 
-                  0 ${(h - f)} 0 ${(h - f)} 0 ${(h - f) / 2} 
-                  0 0 0 0 ${(w - f) / 2} 0
-                  `}
-            />
+          <Mask id="template_mask" x={0} y={0} width={w} height={h}>
+            <Use href={`#shape`} stroke="#FFF" x={f / 2} y={f / 2} strokeWidth={f / 3}/>
           </Mask>
-        </Defs>
-        <G id="shadows" x={f / 2 + s_dx} y={f / 2 + s_dy}>
-          {[
-            'FFF0', 'EEE1', 'DDD2', 'CCC3', 'BBB4', 'AAA5', '9996', '8887',
-            '7778', '6669', '555A', '444B', '333C', '222D', '111E', '000F'].map((e, i) => {
-              return <Use href="#shape" stroke={`#${e}`} strokeWidth={f / 3 + 6 - i * 0.5} />
-            }
-            )
-          }
-        </G>
-        <G mask="url(#template)">
+
+          <G id="template">
+            <G mask="url(#template_mask)">
           <Path
             d={`M ${0 + f / 2} ${0 + f / 2} H ${w / 2}`}
             fill="none"
@@ -274,6 +255,19 @@ export class ColorEdit extends React.Component {
             strokeLinecap="round"
           />
         </G>
+        </G>
+        </Defs>
+        <G id="shadows" x={f / 2 + s_dx} y={f / 2 + s_dy}>
+          {[
+            'FFF0', 'EEE1', 'DDD2', 'CCC3', 'BBB4', 'AAA5', '9996', '8887',
+            '7778', '6669', '555A', '444B', '333C', '222D', '111E', '000F'].map((e, i) => {
+              return <Use href="#shape" stroke={`#${e}`} strokeWidth={f / 3 + 6 - i * 0.5} />
+            }
+            )
+          }
+        </G>
+        <Use href={`#template`} />
+
         <G id="pointer">
           {[
             'FFF0', 'EEE1', 'DDD2', 'CCC3', 'BBB4', 'AAA5', '9996', '8887',
