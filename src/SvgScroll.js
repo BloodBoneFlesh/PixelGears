@@ -144,7 +144,7 @@ export class SvgScroll extends Component {
               )
             }
           </G>
-          <Use x={f / 2} y={f / 2} href={`#${this.state.pathSVG}`} stroke={`#0F0`} strokeWidth={5} />
+          <Use href={`#${this.state.pathSVG}`} stroke={`#0F0`} strokeWidth={5} />
 
           <G id="pointer">
             <Circle
