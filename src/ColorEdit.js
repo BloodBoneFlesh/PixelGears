@@ -1,21 +1,17 @@
 import * as React from 'react';
 
-import { PanResponder } from 'react-native';
 import Svg, {
-  Circle,
+  Rect,
   Path,
   LinearGradient,
   Defs,
   Stop,
   Use,
-  Line,
   Mask,
   G,
 } from 'react-native-svg';
 
 import { SvgScroll } from './SvgScroll';
-
-let padding;
 
 export class ColorEdit extends React.Component {
   constructor(props) {
@@ -23,26 +19,51 @@ export class ColorEdit extends React.Component {
     this.changeColor = this.changeColor.bind(this);
 
     this.state = {
-      R: 0,
-      G: 0,
-      B: 0,
-
       size: {
         width: 250,
         height: 200,
         margin: 20,
       },
-      color: '#FFF',
+      color: {
+        R: 0,
+        G: 0,
+        B: 0,
+        A: 255
+      },
       padding: { width: 0, height: 0 }
     };
   }
 
   onLayout = (e) => {
-    this.setState({ padding: e.nativeEvent.layout})
+    this.setState({ padding: e.nativeEvent.layout })
   }
 
   changeColor(NewColor) {
     this.setState({ color: NewColor });
+  }
+
+  defineScrollCoordinates(x_start, y_start, step) {
+    return {
+      r: { x1: x_start, y1: y_start += step, x2: x_start + 100, y2: y_start },
+      g: { x1: x_start, y1: y_start += step, x2: x_start + 100, y2: y_start },
+      b: { x1: x_start, y1: y_start += step, x2: x_start + 100, y2: y_start },
+      a: { x1: x_start, y1: y_start += step, x2: x_start + 100, y2: y_start },
+    }
+  }
+
+  defineColorByAngle(angle){
+    console.warn(angle)
+  }
+
+  hexToRgb(color = "#FFFFFF"){
+    /*http://www.javascripter.net/faq/hextorgb.htm*/
+    function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
+    return {
+      R: parseInt((cutHex(color)).substring(0,2),16), 
+      G: parseInt((cutHex(color)).substring(2,4),16), 
+      B: parseInt((cutHex(color)).substring(4,6),16), 
+      //A: parseInt((cutHex(h)).substring(6,8),16), 
+    }
   }
 
   render() {
@@ -52,6 +73,8 @@ export class ColorEdit extends React.Component {
 
     let p_x = (this.state.padding.width - w) / 2
     let p_y = (this.state.padding.height - h) / 2
+
+    let scrolls_coordinates = this.defineScrollCoordinates(110, 50, 27);
 
     return (
       <Svg onLayout={(event) => this.onLayout(event)}
@@ -111,30 +134,58 @@ export class ColorEdit extends React.Component {
           />
 
           <Path
-            id="shape2_shadow"
+            id="r_shape_shadow"
             fill="none"
-            d={`M 99 50 
-                L 201 50`}
+            d={`M ${scrolls_coordinates.r.x1 - 1} ${scrolls_coordinates.r.y1} 
+                L ${scrolls_coordinates.r.x2 + 1} ${scrolls_coordinates.r.y2}`}
           />
           <Path
-            id="shape2"
+            id="r_shape"
             fill="none"
-            d={`M 100 50 
-                L 200 50`}
+            d={`M ${scrolls_coordinates.r.x1} ${scrolls_coordinates.r.y1} 
+                L ${scrolls_coordinates.r.x2} ${scrolls_coordinates.r.y2}`}
           />
 
           <Path
-            id="shape3_shadow"
+            id="g_shape_shadow"
             fill="none"
-            d={`M 50 49 
-                L 50 151`}
+            d={`M ${scrolls_coordinates.g.x1 - 1} ${scrolls_coordinates.g.y1} 
+                L ${scrolls_coordinates.g.x2 + 1} ${scrolls_coordinates.g.y2}`}
           />
           <Path
-            id="shape3"
+            id="g_shape"
             fill="none"
-            d={`M 50 50 
-                L 50 150`}
+            d={`M ${scrolls_coordinates.g.x1} ${scrolls_coordinates.g.y1} 
+                L ${scrolls_coordinates.g.x2} ${scrolls_coordinates.g.y2}`}
           />
+
+          <Path
+            id="b_shape_shadow"
+            fill="none"
+            d={`M ${scrolls_coordinates.b.x1 - 1} ${scrolls_coordinates.b.y1} 
+                L ${scrolls_coordinates.b.x2 + 1} ${scrolls_coordinates.b.y2}`}
+          />
+          <Path
+            id="b_shape"
+            fill="none"
+            d={`M ${scrolls_coordinates.b.x1} ${scrolls_coordinates.b.y1} 
+                L ${scrolls_coordinates.b.x2} ${scrolls_coordinates.b.y2}`}
+          />
+
+          <Path
+            id="a_shape_shadow"
+            fill="none"
+            d={`M ${scrolls_coordinates.a.x1 - 1} ${scrolls_coordinates.a.y1} 
+                L ${scrolls_coordinates.a.x2 + 1} ${scrolls_coordinates.a.y2}`}
+          />
+          <Path
+            id="a_shape"
+            fill="none"
+            d={`M ${scrolls_coordinates.a.x1} ${scrolls_coordinates.a.y1} 
+                L ${scrolls_coordinates.a.x2} ${scrolls_coordinates.a.y2}`}
+          />
+
+
 
           <Mask id="template_mask" x={0} y={0} width={w} height={h}>
             <Use href={`#shape`} stroke="#FFF" strokeWidth={f / 3} />
@@ -218,26 +269,76 @@ export class ColorEdit extends React.Component {
             pathSVG="template"
             width={w}
             height={h}
-            callback={(x) => JSON.stringify(x)} />
+            callback={(x) => this.defineColorByAngle(x)} />
 
           <SvgScroll
             type="line"
-            path="shape2_shadow"
-            pathSVG="shape2"
-            line={{ type: 'horizontal', x1: 100, y1: 50, x2: 200, y2: 50 }}
+            path="r_shape_shadow"
+            pathSVG="r_shape"
+            line={{
+              type: 'horizontal',
+              x1: scrolls_coordinates.r.x1,
+              y1: scrolls_coordinates.r.y1,
+              x2: scrolls_coordinates.r.x2,
+              y2: scrolls_coordinates.r.y2,
+            }}
             width={w}
             height={h}
             callback={(x) => JSON.stringify(x)} />
 
           <SvgScroll
             type="line"
-            path="shape3_shadow"
-            pathSVG="shape3"
-            line={{ type: 'verical', x1: 50, y1: 50, x2: 50, y2: 150}}
+            path="g_shape_shadow"
+            pathSVG="g_shape"
+            line={{
+              type: 'horizontal',
+              x1: scrolls_coordinates.g.x1,
+              y1: scrolls_coordinates.g.y1,
+              x2: scrolls_coordinates.g.x2,
+              y2: scrolls_coordinates.g.y2,
+            }}
+            width={w}
+            height={h}
+            callback={(x) => JSON.stringify(x)} />
+
+          <SvgScroll
+            type="line"
+            path="b_shape_shadow"
+            pathSVG="b_shape"
+            line={{
+              type: 'horizontal',
+              x1: scrolls_coordinates.b.x1,
+              y1: scrolls_coordinates.b.y1,
+              x2: scrolls_coordinates.b.x2,
+              y2: scrolls_coordinates.b.y2,
+            }}
+            width={w}
+            height={h}
+            callback={(x) => JSON.stringify(x)} />
+
+          <SvgScroll
+            type="line"
+            path="a_shape_shadow"
+            pathSVG="a_shape"
+            line={{
+              type: 'horizontal',
+              x1: scrolls_coordinates.a.x1,
+              y1: scrolls_coordinates.a.y1,
+              x2: scrolls_coordinates.a.x2,
+              y2: scrolls_coordinates.a.y2,
+            }}
             width={w}
             height={h}
             callback={(x) => JSON.stringify(x)} />
         </G>
+
+        <Rect
+          x="60"
+          y="60"
+          width="60"
+          height="120"
+          fill={`rgb(${this.state.color.R},${this.state.color.G},${this.state.color.B},${this.state.color.A})`}
+        />
 
       </Svg>
     );

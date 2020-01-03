@@ -41,7 +41,7 @@ export class SvgScroll extends Component {
       },
     };
     this._handlePanResponderMove = this._handlePanResponderMove.bind(this);
-    this.Measure = this.Measure.bind(this);
+    this.measure = this.measure.bind(this);
   }
 
   onLayout = (e) => {
@@ -57,11 +57,13 @@ export class SvgScroll extends Component {
   }
   _handlePanResponderMove(evt, gestureState) {
     let result;
+    let angle;
 
-    if (this.state.type == 'superellipse')
-      result = this.calculatePolar(this.angle(evt.nativeEvent.pageX, evt.nativeEvent.pageY),
-        (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
-
+    if (this.state.type == 'superellipse') {
+      angle = this.angle(evt.nativeEvent.pageX, evt.nativeEvent.pageY)
+      result = this.calculatePolar(angle, (this.state.size.width - this.state.size.margin) / 2,
+        (this.state.size.height - this.state.size.margin) / 2, 5)
+    }
     else
       result = this.calculateLine(evt.nativeEvent.pageX, evt.nativeEvent.pageY)
 
@@ -70,7 +72,13 @@ export class SvgScroll extends Component {
       this.setState({
         position: { x: result.x, y: result.y, },
       });
-      this.state.callback(this.state.position)
+      this.state.callback(this.state.type == 'superellipse' ? {
+        angle,
+        top_left: this.angle(0, 0),
+        top_right: this.angle(this.state.size.width, 0),
+        bottom_left: this.angle(0, this.state.size.height),
+        bottom_right: this.angle(this.state.size.width, this.state.size.height),
+      } : this.state.position)
     }
   }
 
@@ -92,13 +100,13 @@ export class SvgScroll extends Component {
       result = this.calculateLine(0, 0)
     }
 
-    setTimeout(this.Measure);
+    setTimeout(this.measure);
     this.setState({
       position: { x: result.x, y: result.y, },
     });
   }
 
-  Measure() {
+  measure() {
     UIManager.measure(findNodeHandle(this.refs['Marker']), (fx, fy, width, height, px, py) => {
       /*    
             console.log('Component width is: ' + width)
@@ -136,11 +144,10 @@ export class SvgScroll extends Component {
   }
 
   calculateLine(x, y) {
-
-    console.log(x, y, this.state.padding, this.state.measure)
+    //console.log(x, y, this.state.padding, this.state.measure)
 
     if (this.state.measure && this.state.padding) {
-      x -= this.state.padding.width + this.state.size.radius ;
+      x -= this.state.padding.width + this.state.size.radius;
       y -= this.state.measure.py + this.state.padding.height;
     }
 
@@ -216,6 +223,41 @@ export class SvgScroll extends Component {
               fill="url(#pointer_fill)"
               stroke="none"
               {...this._panResponder.panHandlers}
+            />
+
+
+
+
+
+
+
+            <Circle
+              cx={0}
+              cy={0}
+              r={5}
+              fill="black"
+              stroke="none"
+            />
+            <Circle
+              cx={0}
+              cy={this.state.size.height}
+              r={5}
+              fill="black"
+              stroke="none"
+            />
+            <Circle
+              cx={this.state.size.width}
+              cy={0}
+              r={5}
+              fill="black"
+              stroke="none"
+            />
+            <Circle
+              cx={this.state.size.width}
+              cy={this.state.size.height}
+              r={5}
+              fill="black"
+              stroke="none"
             />
           </G>
         </G>
