@@ -42,8 +42,11 @@ export default class App extends React.Component {
   render() {
     return (
       <View style={styles.Screen}>
+        <View style={{ flex: 0.25 }} />
+        
         <ColorEdit />
-
+        
+        <View style={{ flex: 0.75 }} />
       </View>
     );
   }

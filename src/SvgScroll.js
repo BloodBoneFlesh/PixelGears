@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { PanResponder } from 'react-native';
+import { PanResponder, findNodeHandle, UIManager } from 'react-native';
 import Svg, {
   Path, G, Circle, Line, Defs, LinearGradient,
   Stop, RadialGradient,
@@ -12,6 +12,7 @@ let pathElement;
 export class SvgScroll extends Component {
   constructor(props) {
     super(props);
+
     this.state = {
       /* line / superellipse */
       type: props.type,
@@ -26,16 +27,28 @@ export class SvgScroll extends Component {
         radius: 9,
         width: props.width,
         height: props.height,
-        margin: 20
+        margin: 20,
       },
+      padding: { width: 0, height: 0 },
+
       line: {
-        start: props.lineStart,
-        end: props.lineEnd,
+        /* horizontal / vertical */
+        type: this.props.line ? this.props.line.type : 'line',
+        x1: this.props.line ? this.props.line.x1 : 0,
+        x2: this.props.line ? this.props.line.x2 : 0,
+        y1: this.props.line ? this.props.line.y1 : 0,
+        y2: this.props.line ? this.props.line.y2 : 0,
       },
-      pathPoints: [],
     };
     this._handlePanResponderMove = this._handlePanResponderMove.bind(this);
+    this.Measure = this.Measure.bind(this);
   }
+
+  onLayout = (e) => {
+    /*let padding = */
+    this.setState({ padding: e.nativeEvent.layout })
+  }
+
   componentWillMount() {
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -44,35 +57,68 @@ export class SvgScroll extends Component {
   }
   _handlePanResponderMove(evt, gestureState) {
     let result;
-    if(this.state.type == 'superellipse')
-       result = this.calculatePolar(this.angle(evt.nativeEvent.locationX, evt.nativeEvent.locationY),
-      (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
 
-      else
-      result = this.calculateLine(evt.nativeEvent.locationX, evt.nativeEvent.locationY)
-    
+    if (this.state.type == 'superellipse')
+      result = this.calculatePolar(this.angle(evt.nativeEvent.pageX, evt.nativeEvent.pageY),
+        (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
 
-    if (result){
+    else
+      result = this.calculateLine(evt.nativeEvent.pageX, evt.nativeEvent.pageY)
+
+
+    if (result) {
       this.setState({
         position: { x: result.x, y: result.y, },
       });
       this.state.callback(this.state.position)
     }
   }
+
+  defineLineParameters() {
+    /*let regex = /m ([0-9\.]+)\s*[\,]?\s*([0-9\.]+) l ([0-9\.]+)\s*[\,]?\s*([0-9\.]+)/i;;
+    let result = regex.exec(this.state.path);
+    console.warn( {x1: result[1], y1: result[2], x2: result[3], y2: result[4]} );*/
+    this.setState({
+      position: { x: this.state.line.x1, y: this.state.line.y1 },
+    });
+  }
+
   componentDidMount() {
     let result;
-    if(this.state.type == 'superellipse')
-      result =  this.calculatePolar(0, (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
-    else
-      result = this.calculateLine(evt.nativeEvent.locationX, evt.nativeEvent.locationY)
-    
+    if (this.state.type == 'superellipse')
+      result = this.calculatePolar(0, (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
+    else {
+      this.defineLineParameters()
+      result = this.calculateLine(0, 0)
+    }
+
+    setTimeout(this.Measure);
     this.setState({
       position: { x: result.x, y: result.y, },
     });
   }
 
+  Measure() {
+    UIManager.measure(findNodeHandle(this.refs['Marker']), (fx, fy, width, height, px, py) => {
+      /*    
+            console.log('Component width is: ' + width)
+            console.log('Component height is: ' + height)
+            console.log('X offset to frame: ' + fx)
+            console.log('Y offset to frame: ' + fy)
+            console.log('X offset to page: ' + px)
+            console.log('Y offset to page: ' + py)
+      */
+      this.setState({
+        measure: { fx, fy, width, height, px, py }
+      });
+    });
+  }
+
   angle(x, y) {
-    let center = { x: this.state.size.width / 2, y: this.state.size.height / 2 }
+    let center = {
+      x: this.state.padding.width / 2 + this.state.measure.px + this.state.padding.x,
+      y: this.state.padding.height / 2 + this.state.measure.py + this.state.padding.y
+    }
     let AC = { x: center.x - x, y: center.y - y }
     let BC = { x: center.x - x, y: 0 }
     let result = Math.acos((AC.x * BC.x + AC.y * BC.y) / (Math.sqrt(AC.x * AC.x + AC.y * AC.y) * Math.sqrt(BC.x * BC.x + BC.y * BC.y))) * (180 / Math.PI)
@@ -89,12 +135,21 @@ export class SvgScroll extends Component {
     return result;
   }
 
-  calculateLine(x, y){
-    if( x < this.state.line.start )
-      return { x: this.state.line.start, y: this.state.position.y }
-    if( x > this.state.line.end )
-      return { x: this.state.line.end, y: thisthis.state.position.y }
-    return { x: x, y: thisthis.state.position.y }
+  calculateLine(x, y) {
+
+    console.log(x, y, this.state.padding, this.state.measure)
+
+    if (this.state.measure && this.state.padding) {
+      x -= this.state.padding.width + this.state.size.radius ;
+      y -= this.state.measure.py + this.state.padding.height;
+    }
+
+
+    if (this.state.line.type == 'horizontal' ? x < this.state.line.x1 : y < this.state.line.y1)
+      return { x: this.state.line.x1, y: this.state.line.y1 }
+    if (this.state.line.type == 'horizontal' ? x > this.state.line.x2 : y > this.state.line.y2)
+      return { x: this.state.line.x2, y: this.state.line.y2 }
+    return this.state.line.type == 'horizontal' ? { x: x, y: this.state.line.y2 } : { x: this.state.line.x2, y: y };
   }
 
   calculatePolar(angle, a, b, n) {
@@ -116,14 +171,14 @@ export class SvgScroll extends Component {
     let w = this.state.size.width; /* border rect width */
     let h = this.state.size.height; /* border rect height */
     let f = this.state.size.margin; /* border line width */
-    let s_dx = -1; /* shadow dx*/
-    let s_dy = 1; /* shadow dy*/
+    let s_dx = -0.25; /* shadow dx*/
+    let s_dy = 0.25; /* shadow dy*/
 
     return (
       /* without viewBox */
       /* path should be drawn first somehow */
 
-      <G>
+      <G onLayout={(event) => this.onLayout(event)} ref="Marker">
         <Defs>
           <LinearGradient id="pointer_fill" x1="0%" y1="0%" x2="0%" y2="100%">
             <Stop offset="0" stopColor="rgb(240,240,240)" stopOpacity="1" />
@@ -135,7 +190,7 @@ export class SvgScroll extends Component {
           </RadialGradient>
         </Defs>
         <G>
-          <G id="shadows" x={f / 2 + s_dx} y={f / 2 + s_dy}>
+          <G id="shadows" x={s_dx} y={s_dy}>
             {[
               'FFF0', 'EEE1', 'DDD2', 'CCC3', 'BBB4', 'AAA5', '9996', '8887',
               '7778', '6669', '555A', '444B', '333C', '222D', '111E', '000F'].map((e, i) => {
@@ -150,7 +205,7 @@ export class SvgScroll extends Component {
             <Circle
               cx={this.state.position.x}
               cy={this.state.position.y}
-              r={this.state.size.radius*1.3}
+              r={this.state.size.radius * 1.3}
               fill="url(#pointer_shadow)"
               stroke="none"
             />
