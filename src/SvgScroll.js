@@ -72,13 +72,9 @@ export class SvgScroll extends Component {
       this.setState({
         position: { x: result.x, y: result.y, },
       });
-      this.state.callback(this.state.type == 'superellipse' ? {
-        angle,
-        top_left: this.angle(0, 0),
-        top_right: this.angle(this.state.size.width, 0),
-        bottom_left: this.angle(0, this.state.size.height),
-        bottom_right: this.angle(this.state.size.width, this.state.size.height),
-      } : this.state.position)
+      this.state.callback(this.state.type == 'superellipse' ?
+        { ...this.cornerAngles(), angle, } :
+        this.state.position)
     }
   }
 
@@ -143,11 +139,22 @@ export class SvgScroll extends Component {
     return result;
   }
 
+  cornerAngles() {
+    let bottom_right = Math.atan2(this.state.size.height / 2, this.state.size.width / 2) * 180 / Math.PI;
+
+    return {
+      top_left: 180 + bottom_right,
+      top_right: 360 - bottom_right,
+      bottom_left: 180 - bottom_right,
+      bottom_right,
+    }
+  }
+
   calculateLine(x, y) {
     //console.log(x, y, this.state.padding, this.state.measure)
 
     if (this.state.measure && this.state.padding) {
-      x -= this.state.padding.width + this.state.size.radius;
+      x -= this.state.measure.px + this.state.padding.width - this.state.size.margin/2;
       y -= this.state.measure.py + this.state.padding.height;
     }
 
@@ -206,7 +213,7 @@ export class SvgScroll extends Component {
               )
             }
           </G>
-          <Use href={`#${this.state.pathSVG}`} stroke={`#0F0`} strokeWidth={5} />
+          <Use href={`#${this.state.pathSVG}`} strokeWidth={5} />
 
           <G id="pointer">
             <Circle
@@ -223,41 +230,6 @@ export class SvgScroll extends Component {
               fill="url(#pointer_fill)"
               stroke="none"
               {...this._panResponder.panHandlers}
-            />
-
-
-
-
-
-
-
-            <Circle
-              cx={0}
-              cy={0}
-              r={5}
-              fill="black"
-              stroke="none"
-            />
-            <Circle
-              cx={0}
-              cy={this.state.size.height}
-              r={5}
-              fill="black"
-              stroke="none"
-            />
-            <Circle
-              cx={this.state.size.width}
-              cy={0}
-              r={5}
-              fill="black"
-              stroke="none"
-            />
-            <Circle
-              cx={this.state.size.width}
-              cy={this.state.size.height}
-              r={5}
-              fill="black"
-              stroke="none"
             />
           </G>
         </G>

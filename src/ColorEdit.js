@@ -8,6 +8,8 @@ import Svg, {
   Stop,
   Use,
   Mask,
+  Image,
+  Pattern,
   G,
 } from 'react-native-svg';
 
@@ -20,7 +22,7 @@ export class ColorEdit extends React.Component {
 
     this.state = {
       size: {
-        width: 250,
+        width: 300,
         height: 200,
         margin: 20,
       },
@@ -51,18 +53,62 @@ export class ColorEdit extends React.Component {
     }
   }
 
-  defineColorByAngle(angle){
-    console.warn(angle)
+  defineColorByAngle(angle) {
+    function definePercent(left, right, value) {
+      /*  x / y = n / 100  =>   x * 100 / y = n  
+          x = value - left;    y = right - left  */
+      return (value - left) * 100 / (right - left);
+    }
+
+    if (angle.angle >= 0 && angle.angle <= angle.bottom_right) {
+      // "green_aqua" "rgb(0,255,0)" "rgb(0,255,255)" 
+      let p = definePercent(0, angle.bottom_right, angle.angle);
+      this.setState({ color: { R: 0, G: 255, B: Math.floor(p / 100 * 255), A: 255 } })
+    }
+    if (angle.angle <= 90 && angle.angle >= angle.bottom_right) {
+      // "aqua_blue" "rgb(0,0,255)" "rgb(0,255,255)"
+      let p = definePercent(angle.bottom_right, 90, angle.angle);
+      this.setState({ color: { R: 0, G: 255 - Math.floor(p / 100 * 255), B: 255, A: 255 } })
+    }
+    if (angle.angle >= 90 && angle.angle <= angle.bottom_left) {
+      // "blue_pink" "rgb(0,0,255)" "rgb(255,0,255)" 
+      let p = definePercent(90, angle.bottom_left, angle.angle);
+      this.setState({ color: { R: Math.floor(p / 100 * 255), G: 0, B: 255, A: 255 } })
+    }
+    if (angle.angle <= 180 && angle.angle >= angle.bottom_left) {
+      // "pink_white" "rgb(255,255,255)" "rgb(255,0,255)"
+      let p = definePercent(angle.bottom_left, 180, angle.angle);
+      this.setState({ color: { R: 255, G: Math.floor(p / 100 * 255), B: 255, A: 255 } })
+    }
+    if (angle.angle >= 180 && angle.angle <= angle.top_left) {
+      // "white_black" "rgb(255,255,255)" "rgb(0,0,0)"
+      let p = Math.floor(definePercent(180, angle.top_left, angle.angle) / 100 * 255);
+      this.setState({ color: { R: 255 - p, G: 255 - p, B: 255 - p, A: 255 } })
+    }
+    if (angle.angle <= 270 && angle.angle >= angle.top_left) {
+      // "black_red"  "rgb(0,0,0)"  "rgb(255,0,0)"
+      let p = definePercent(angle.top_left, 270, angle.angle);
+      this.setState({ color: { R: Math.floor(p / 100 * 255), G: 0, B: 0, A: 255 } })
+    }
+    if (angle.angle >= 270 && angle.angle <= angle.top_right) {
+      // "red_yellow" "rgb(255,0,0)" "rgb(255,255,0)"
+      let p = definePercent(270, angle.top_right, angle.angle);
+      this.setState({ color: { R: 255, G: Math.floor(p / 100 * 255), B: 0, A: 255 } })
+    }
+    if (angle.angle <= 360 && angle.angle >= angle.top_right) {
+      // "yellow_green" "rgb(255,255,0)" "rgb(0,255,0)" 
+      let p = definePercent(angle.top_right, 360, angle.angle);
+      this.setState({ color: { R: 255 - Math.floor(p / 100 * 255), G: 255, B: 0, A: 255 } })
+    }
   }
 
-  hexToRgb(color = "#FFFFFF"){
+  hexToRgb(color = "#FFFFFF") {
     /*http://www.javascripter.net/faq/hextorgb.htm*/
-    function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
+    function cutHex(h) { return (h.charAt(0) == "#") ? h.substring(1, 7) : h }
     return {
-      R: parseInt((cutHex(color)).substring(0,2),16), 
-      G: parseInt((cutHex(color)).substring(2,4),16), 
-      B: parseInt((cutHex(color)).substring(4,6),16), 
-      //A: parseInt((cutHex(h)).substring(6,8),16), 
+      R: parseInt((cutHex(color)).substring(0, 2), 16),
+      G: parseInt((cutHex(color)).substring(2, 4), 16),
+      B: parseInt((cutHex(color)).substring(4, 6), 16),
     }
   }
 
@@ -74,13 +120,23 @@ export class ColorEdit extends React.Component {
     let p_x = (this.state.padding.width - w) / 2
     let p_y = (this.state.padding.height - h) / 2
 
-    let scrolls_coordinates = this.defineScrollCoordinates(110, 50, 27);
+    let scrolls_coordinates = this.defineScrollCoordinates(150, 50, 27);
 
     return (
       <Svg onLayout={(event) => this.onLayout(event)}
         style={{ flex: 1, }}
         /*height={h} width={w} viewBox={`0 0 ${w} ${h}`}*/>
         <Defs>
+          <Pattern
+            id="transparent" patternUnits="userSpaceOnUse"
+            x="0" y="0" width="8" height="8"
+          >
+            <Image
+              x="0" y="0" width="8" height="8"
+              href={require('../pictures/pattern_8x8.png')}
+            />
+          </Pattern>
+
           <LinearGradient id="black_red" x1="0%" y1="0%" x2="100%" y2="0%">
             <Stop offset="0.25" stopColor="rgb(0,0,0)" stopOpacity="1" />
             <Stop offset="0.75" stopColor="rgb(255,0,0)" stopOpacity="1" />
@@ -121,6 +177,26 @@ export class ColorEdit extends React.Component {
             <Stop offset="0.25" stopColor="rgb(0,0,0)" stopOpacity="1" />
           </LinearGradient>
 
+          <LinearGradient id="r" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0" stopColor={`rgb(0, ${this.state.color.G}, ${this.state.color.B})`} stopOpacity="1" />
+            <Stop offset="1" stopColor={`rgb(255, ${this.state.color.G}, ${this.state.color.B})`} stopOpacity="1" />
+          </LinearGradient>
+
+          <LinearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0" stopColor={`rgb(${this.state.color.R}, 0, ${this.state.color.B})`} stopOpacity="1" />
+            <Stop offset="1" stopColor={`rgb(${this.state.color.R}, 255, ${this.state.color.B})`} stopOpacity="1" />
+          </LinearGradient>
+
+          <LinearGradient id="b" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0" stopColor={`rgb(${this.state.color.R}, ${this.state.color.G}, 0)`} stopOpacity="1" />
+            <Stop offset="1" stopColor={`rgb(${this.state.color.R}, ${this.state.color.G}, 255)`} stopOpacity="1" />
+          </LinearGradient>
+
+          <LinearGradient id="a" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0" stopColor={`rgb(${this.state.color.R}, ${this.state.color.G}, ${this.state.color.B})`} stopOpacity="0" />
+            <Stop offset="1" stopColor={`rgb(${this.state.color.R}, ${this.state.color.G}, ${this.state.color.B})`} stopOpacity="1" />
+          </LinearGradient>
+
           <Path
             id="shape"
             fill="none"
@@ -142,6 +218,7 @@ export class ColorEdit extends React.Component {
           <Path
             id="r_shape"
             fill="none"
+            stroke="url(#r)"
             d={`M ${scrolls_coordinates.r.x1} ${scrolls_coordinates.r.y1} 
                 L ${scrolls_coordinates.r.x2} ${scrolls_coordinates.r.y2}`}
           />
@@ -149,12 +226,14 @@ export class ColorEdit extends React.Component {
           <Path
             id="g_shape_shadow"
             fill="none"
+
             d={`M ${scrolls_coordinates.g.x1 - 1} ${scrolls_coordinates.g.y1} 
                 L ${scrolls_coordinates.g.x2 + 1} ${scrolls_coordinates.g.y2}`}
           />
           <Path
             id="g_shape"
             fill="none"
+            stroke="url(#g)"
             d={`M ${scrolls_coordinates.g.x1} ${scrolls_coordinates.g.y1} 
                 L ${scrolls_coordinates.g.x2} ${scrolls_coordinates.g.y2}`}
           />
@@ -168,6 +247,7 @@ export class ColorEdit extends React.Component {
           <Path
             id="b_shape"
             fill="none"
+            stroke="url(#b)"
             d={`M ${scrolls_coordinates.b.x1} ${scrolls_coordinates.b.y1} 
                 L ${scrolls_coordinates.b.x2} ${scrolls_coordinates.b.y2}`}
           />
@@ -178,14 +258,20 @@ export class ColorEdit extends React.Component {
             d={`M ${scrolls_coordinates.a.x1 - 1} ${scrolls_coordinates.a.y1} 
                 L ${scrolls_coordinates.a.x2 + 1} ${scrolls_coordinates.a.y2}`}
           />
-          <Path
-            id="a_shape"
-            fill="none"
-            d={`M ${scrolls_coordinates.a.x1} ${scrolls_coordinates.a.y1} 
+          <G id="a_shape" >
+            <Path
+              fill="none"
+              stroke="url(#transparent)"
+              d={`M ${scrolls_coordinates.a.x1} ${scrolls_coordinates.a.y1} 
                 L ${scrolls_coordinates.a.x2} ${scrolls_coordinates.a.y2}`}
-          />
-
-
+            />
+            <Path
+              fill="none"
+              stroke="url(#a)"
+              d={`M ${scrolls_coordinates.a.x1} ${scrolls_coordinates.a.y1} 
+                L ${scrolls_coordinates.a.x2} ${scrolls_coordinates.a.y2}`}
+            />
+          </G>
 
           <Mask id="template_mask" x={0} y={0} width={w} height={h}>
             <Use href={`#shape`} stroke="#FFF" strokeWidth={f / 3} />
@@ -339,6 +425,7 @@ export class ColorEdit extends React.Component {
           height="120"
           fill={`rgb(${this.state.color.R},${this.state.color.G},${this.state.color.B},${this.state.color.A})`}
         />
+
 
       </Svg>
     );
