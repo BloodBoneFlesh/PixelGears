@@ -208,12 +208,12 @@ export class SvgScroll extends Component {
             {[
               'FFF0', 'EEE1', 'DDD2', 'CCC3', 'BBB4', 'AAA5', '9996', '8887',
               '7778', '6669', '555A', '444B', '333C', '222D', '111E', '000F'].map((e, i) => {
-                return <Use href={`#${this.state.path}`} stroke={`#${e}`} strokeWidth={f / 3 + 6 - i * 0.5} />
+                return <Use href={`#${this.state.path}`} fill="none" stroke={`#${e}`} strokeWidth={f / 3 + 6 - i * 0.5} />
               }
               )
             }
           </G>
-          <Use href={`#${this.state.pathSVG}`} strokeWidth={5} />
+          <Use href={`#${this.state.pathSVG}`} strokeWidth={5} fill="none"/>
 
           <G id="pointer">
             <Circle

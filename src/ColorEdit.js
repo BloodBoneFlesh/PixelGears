@@ -23,7 +23,7 @@ export class ColorEdit extends React.Component {
     this.state = {
       size: {
         width: 300,
-        height: 200,
+        height: 500,
         margin: 20,
       },
       color: {
@@ -54,6 +54,55 @@ export class ColorEdit extends React.Component {
   }
 
   defineColorByAngle(angle) {
+    function definePercent(left, right, value) {
+      /*  x / y = n / 100  =>   x * 100 / y = n  
+          x = value - left;    y = right - left  */
+      return (value - left) * 100 / (right - left);
+    }
+
+    if (angle.angle >= 0 && angle.angle <= angle.bottom_right) {
+      // "green_aqua" "rgb(0,255,0)" "rgb(0,255,255)" 
+      let p = definePercent(0, angle.bottom_right, angle.angle);
+      this.setState({ color: { R: 0, G: 255, B: Math.floor(p / 100 * 255), A: 255 } })
+    }
+    if (angle.angle <= 90 && angle.angle >= angle.bottom_right) {
+      // "aqua_blue" "rgb(0,0,255)" "rgb(0,255,255)"
+      let p = definePercent(angle.bottom_right, 90, angle.angle);
+      this.setState({ color: { R: 0, G: 255 - Math.floor(p / 100 * 255), B: 255, A: 255 } })
+    }
+    if (angle.angle >= 90 && angle.angle <= angle.bottom_left) {
+      // "blue_pink" "rgb(0,0,255)" "rgb(255,0,255)" 
+      let p = definePercent(90, angle.bottom_left, angle.angle);
+      this.setState({ color: { R: Math.floor(p / 100 * 255), G: 0, B: 255, A: 255 } })
+    }
+    if (angle.angle <= 180 && angle.angle >= angle.bottom_left) {
+      // "pink_white" "rgb(255,255,255)" "rgb(255,0,255)"
+      let p = definePercent(angle.bottom_left, 180, angle.angle);
+      this.setState({ color: { R: 255, G: Math.floor(p / 100 * 255), B: 255, A: 255 } })
+    }
+    if (angle.angle >= 180 && angle.angle <= angle.top_left) {
+      // "white_black" "rgb(255,255,255)" "rgb(0,0,0)"
+      let p = Math.floor(definePercent(180, angle.top_left, angle.angle) / 100 * 255);
+      this.setState({ color: { R: 255 - p, G: 255 - p, B: 255 - p, A: 255 } })
+    }
+    if (angle.angle <= 270 && angle.angle >= angle.top_left) {
+      // "black_red"  "rgb(0,0,0)"  "rgb(255,0,0)"
+      let p = definePercent(angle.top_left, 270, angle.angle);
+      this.setState({ color: { R: Math.floor(p / 100 * 255), G: 0, B: 0, A: 255 } })
+    }
+    if (angle.angle >= 270 && angle.angle <= angle.top_right) {
+      // "red_yellow" "rgb(255,0,0)" "rgb(255,255,0)"
+      let p = definePercent(270, angle.top_right, angle.angle);
+      this.setState({ color: { R: 255, G: Math.floor(p / 100 * 255), B: 0, A: 255 } })
+    }
+    if (angle.angle <= 360 && angle.angle >= angle.top_right) {
+      // "yellow_green" "rgb(255,255,0)" "rgb(0,255,0)" 
+      let p = definePercent(angle.top_right, 360, angle.angle);
+      this.setState({ color: { R: 255 - Math.floor(p / 100 * 255), G: 255, B: 0, A: 255 } })
+    }
+  }
+
+  defineAngleByColor(color) {
     function definePercent(left, right, value) {
       /*  x / y = n / 100  =>   x * 100 / y = n  
           x = value - left;    y = right - left  */
@@ -199,7 +248,6 @@ export class ColorEdit extends React.Component {
 
           <Path
             id="shape"
-            fill="none"
             x={f / 2} y={f / 2}
             d={`M ${(w - f) / 2} 0 
                 C ${(w - f)} 0 ${(w - f)} 0 ${(w - f)} ${(h - f) / 2} 
@@ -207,6 +255,26 @@ export class ColorEdit extends React.Component {
                   0 ${(h - f)} 0 ${(h - f)} 0 ${(h - f) / 2} 
                   0 0 0 0 ${(w - f) / 2} 0
                   `}
+          />
+
+          <Path
+            id="color_shape"
+            x={f} y={f}
+            d={`M ${(w - f) / 2} 0 
+                C ${(w - 2.5 * f)} 0 ${(w - 2 * f)} 0 ${(w - 2 * f)} ${50} 
+                H 0 
+                C 0 ${f/8} 0 0 ${(w - f) / 2} 0
+                `}
+          />
+
+          <Path
+            id="top_bar_shape"
+            x={f} y={f}
+            d={`M 0 ${(h - f) / 2} 
+            C 0 ${f} ${-f / 4} ${f / 8} ${50} 0 
+            V ${(h - 2.05 * f)}
+            C 0 ${(h - 2 * f - f / 8)} 0 ${(h - 3 * f)} 0 ${(h - f) / 2}  
+             `}
           />
 
           <Path
@@ -274,7 +342,7 @@ export class ColorEdit extends React.Component {
           </G>
 
           <Mask id="template_mask" x={0} y={0} width={w} height={h}>
-            <Use href={`#shape`} stroke="#FFF" strokeWidth={f / 3} />
+            <Use href={`#shape`} stroke="#FFF" strokeWidth={f / 3} fill="none" />
           </Mask>
 
           <G id="template">
@@ -348,6 +416,10 @@ export class ColorEdit extends React.Component {
           </G>
         </Defs>
 
+        <Use x={p_x} y={p_y} href={`#color_shape`}
+          fill={`rgb(${this.state.color.R},${this.state.color.G},${this.state.color.B},${this.state.color.A})`}
+        />
+
         <G x={p_x} y={p_y}>
           <SvgScroll
             type="superellipse"
@@ -418,13 +490,6 @@ export class ColorEdit extends React.Component {
             callback={(x) => JSON.stringify(x)} />
         </G>
 
-        <Rect
-          x="60"
-          y="60"
-          width="60"
-          height="120"
-          fill={`rgb(${this.state.color.R},${this.state.color.G},${this.state.color.B},${this.state.color.A})`}
-        />
 
 
       </Svg>
