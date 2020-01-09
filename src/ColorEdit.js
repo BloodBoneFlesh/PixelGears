@@ -23,7 +23,7 @@ export class ColorEdit extends React.Component {
     this.state = {
       size: {
         width: 300,
-        height: 500,
+        height: 300,
         margin: 20,
       },
       color: {
@@ -174,7 +174,7 @@ export class ColorEdit extends React.Component {
     return (
       <Svg onLayout={(event) => this.onLayout(event)}
         style={{ flex: 1, }}
-        /*height={h} width={w} viewBox={`0 0 ${w} ${h}`}*/>
+      >
         <Defs>
           <Pattern
             id="transparent" patternUnits="userSpaceOnUse"
@@ -247,25 +247,34 @@ export class ColorEdit extends React.Component {
           </LinearGradient>
 
           <Path
-            id="shape"
             x={f / 2} y={f / 2}
+            id="shape"
             d={`M ${(w - f) / 2} 0 
                 C ${(w - f)} 0 ${(w - f)} 0 ${(w - f)} ${(h - f) / 2} 
                   ${(w - f)} ${(h - f)} ${(w - f)} ${(h - f)} ${(w - f) / 2} ${(h - f)} 
                   0 ${(h - f)} 0 ${(h - f)} 0 ${(h - f) / 2} 
                   0 0 0 0 ${(w - f) / 2} 0
-                  `}
+              `}
           />
 
           <Path
-            id="color_shape"
             x={f} y={f}
+            id="inner_shape"
             d={`M ${(w - f) / 2} 0 
-                C ${(w - 2.5 * f)} 0 ${(w - 2 * f)} 0 ${(w - 2 * f)} ${50} 
-                H 0 
-                C 0 ${f/8} 0 0 ${(w - f) / 2} 0
-                `}
+                C ${(w - 2 * f)} 0 ${(w - 2 * f)} 0 ${(w - 2 * f)} ${(h - f) / 2} 
+                  ${(w - 2 * f)} ${(h - 2 * f)} ${(w - 2 * f)} ${(h - 2 * f)} ${(w - f) / 2} ${(h - 2 * f)} 
+                  0 ${(h - 2 * f)} 0 ${(h - 1.5 * f)} 0 ${(h - f) / 2} 
+                  0 ${(-0.5*f)} 0 0 ${(w - f) / 2} 0
+              `}
           />
+
+          <Mask id="color_mask" >
+            <Rect x={0} y={0} width={w} height={h/4} fill="#FFF" />
+          </Mask>
+
+          <Mask id="button_mask" >
+            <Rect x={0} y={h-h/4} width={w} height={h/4} fill="#FFF" />
+          </Mask>
 
           <Path
             id="top_bar_shape"
@@ -341,86 +350,77 @@ export class ColorEdit extends React.Component {
             />
           </G>
 
-          <Mask id="template_mask" x={0} y={0} width={w} height={h}>
+          <Mask id="template_mask" >
             <Use href={`#shape`} stroke="#FFF" strokeWidth={f / 3} fill="none" />
           </Mask>
+
 
           <G id="template">
             <G mask="url(#template_mask)">
               <Path
-                d={`M ${f / 2} ${f / 2} H ${w / 2}`}
+                d={`M 0 0 H ${w / 2}`}
                 fill="none"
                 stroke="url(#black_red)"
-                strokeWidth={f * 3}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-              <Path
-                d={`M ${w / 2} ${f / 2} H ${w - f / 2}`}
-                fill="none"
-                stroke="url(#red_yellow)"
-                strokeWidth={f * 3}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-              <Path
-                d={`M ${w - f / 2} ${f / 2} V ${h / 2}`}
-                fill="none"
-                stroke="url(#yellow_green)"
-                strokeWidth={f * 3}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-              <Path
-                d={`M ${w - f / 2} ${h / 2} V ${h - f / 2}`}
-                fill="none"
-                stroke="url(#green_aqua)"
-                strokeWidth={f * 3}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-              <Path
-                d={`M ${w - f / 2} ${h - f / 2} H ${w / 2}`}
-                fill="none"
-                stroke="url(#aqua_blue)"
-                strokeWidth={f * 3}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-              <Path
-                d={`M ${w / 2} ${h - f / 2} H ${f / 2}`}
-                fill="none"
-                stroke="url(#blue_pink)"
-                strokeWidth={f * 3}
-                strokeLinejoin="round"
-                strokeLinecap="round"
+                strokeWidth={5 * f}
               />
 
               <Path
-                d={`M ${f / 2} ${h - f / 2} V ${h / 2}`}
+                d={`M ${w} 0 V ${h / 2}`}
                 fill="none"
-                stroke="url(#pink_white)"
-                strokeWidth={f * 3}
-                strokeLinejoin="round"
-                strokeLinecap="round"
+                stroke="url(#yellow_green)"
+                strokeWidth={f * 5}
               />
               <Path
-                d={`M ${f / 2} ${h / 2} V ${f / 2}`}
+                d={`M ${w / 2} 0 H ${w}`}
+                fill="none"
+                stroke="url(#red_yellow)"
+                strokeWidth={f * 5}
+              />
+              <Path
+                d={`M ${w} ${h / 2} V ${h}`}
+                fill="none"
+                stroke="url(#green_aqua)"
+                strokeWidth={f * 5}
+              />
+              <Path
+                d={`M ${w} ${h} H ${w / 2}`}
+                fill="none"
+                stroke="url(#aqua_blue)"
+                strokeWidth={f * 5}
+              />
+              <Path
+                d={`M 0 ${h} V ${h / 2}`}
+                fill="none"
+                stroke="url(#pink_white)"
+                strokeWidth={f * 5}
+              />
+              <Path
+                d={`M ${w / 2} ${h} H 0`}
+                fill="none"
+                stroke="url(#blue_pink)"
+                strokeWidth={f * 5}
+              />
+
+
+              <Path
+                d={`M 0 ${h / 2} V 0`}
                 fill="none"
                 stroke="url(#white_black)"
-                strokeWidth={f * 3}
-                strokeLinejoin="round"
-                strokeLinecap="round"
+                strokeWidth={f * 5}
               />
             </G>
           </G>
         </Defs>
 
-        <Use x={p_x} y={p_y} href={`#color_shape`}
+        <Use href={`#inner_shape`} mask="url(#color_mask)"
           fill={`rgb(${this.state.color.R},${this.state.color.G},${this.state.color.B},${this.state.color.A})`}
         />
 
-        <G x={p_x} y={p_y}>
+        <Use href={`#inner_shape`} mask="url(#button_mask)"
+          fill={`rgb(${this.state.color.R},${this.state.color.G},${this.state.color.B},${this.state.color.A})`}
+        />
+
+        <G>
           <SvgScroll
             type="superellipse"
             path="shape"
@@ -491,6 +491,7 @@ export class ColorEdit extends React.Component {
         </G>
 
 
+        <Use href={`#shape2`} stroke='black' strokeWidth={5} fill="none" />
 
       </Svg>
     );
