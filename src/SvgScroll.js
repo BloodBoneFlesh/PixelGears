@@ -74,7 +74,8 @@ export class SvgScroll extends Component {
       });
       this.state.callback(this.state.type == 'superellipse' ?
         { ...this.cornerAngles(), angle, } :
-        this.state.position)
+        (this.state.position.x - this.props.line.x1) * (this.props.line.x2 - this.props.line.x1) / 100
+        )
     }
   }
 
@@ -90,13 +91,27 @@ export class SvgScroll extends Component {
   componentDidMount() {
     let result;
     if (this.state.type == 'superellipse')
-      result = this.calculatePolar(0, (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
+      result = this.calculatePolar(this.props.position, (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
     else {
       this.defineLineParameters()
       result = this.calculateLine(0, 0)
     }
 
     setTimeout(this.measure);
+    this.setState({
+      position: { x: result.x, y: result.y, },
+    });
+  }
+
+  setValue(value){
+    let result;
+    if (this.state.type == 'superellipse')
+      result = this.calculatePolar(value, (this.state.size.width - this.state.size.margin) / 2, (this.state.size.height - this.state.size.margin) / 2, 5)
+    else {
+      result = this.calculateLine(
+        this.state.line.x1 + (this.state.line.x2 - this.state.line.x1) * value +  this.state.size.margin/2, 
+        0)
+    }
     this.setState({
       position: { x: result.x, y: result.y, },
     });
