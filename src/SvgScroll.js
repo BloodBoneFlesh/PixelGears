@@ -169,7 +169,7 @@ export class SvgScroll extends Component {
     //console.log(x, y, this.state.padding, this.state.measure)
 
     if (this.state.measure && this.state.padding) {
-      x -= this.state.measure.px + this.state.padding.width - this.state.size.margin/2;
+      x -= this.state.measure.px + this.state.padding.width - this.state.size.margin;
       y -= this.state.measure.py + this.state.padding.height;
     }
 
