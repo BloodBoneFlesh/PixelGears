@@ -1,0 +1,78 @@
+<html>
+  <head>
+    <style>
+      .cell {
+        width: 25px;
+        height: 25px;
+        border: 1px solid darkgrey;
+        margin: 2px;
+      }
+    </style>
+
+    <meta charset="UTF-8" />
+    <script>
+      function init() {
+        ReactDOM.render(
+            React.createElement(ColorPanel),
+            document.querySelector('#example'),
+          );
+      }
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"></script>
+    <script type="text/babel">
+      /*React.createElement( type,  [props],  [...children] )*/
+      
+      class ColorPanel extends React.Component{
+        render() {
+          let colors = []
+/*
+          hue	        Defines a degree on the color wheel (from 0 to 360) - 0 (or 360) is red, 120 is green, 240 is blue
+          saturation	Defines the saturation; 0% is a shade of gray and 100% is the full color (full saturation)
+          lightness	  Defines the lightness; 0% is black, 50% is normal, and 100% is white
+*/
+          let s = 70  
+
+          for(let h=0; h< 360 + 1; h+= 18){
+            let row = []
+            for(let l=0; l< 100 + 1; l+= 10){
+              row.push( [h, s, l ])
+            } 
+            colors.push(row);
+          }
+          return (
+            <table style={{width: '300px', height: '300px'}}><tbody>
+              { 
+                colors.map((e) => <tr key={Math.random()}>
+                  {
+                    e.map((r) => <Cell color={r} key={r.join(',')}/>)
+                  }
+                  </tr>)
+              }
+              </tbody></table>
+          );
+        }
+      }
+
+      class Cell extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {};
+        }
+
+        render() {
+          return React.createElement(
+            'td',
+            {className: 'cell', style: {background: `hsl(${this.props.color[0]}, ${this.props.color[1]}%, ${this.props.color[2]}%)`},},
+            [],
+          );
+        }
+      }
+    </script>
+  </head>
+  <body onload="init()">
+    <div id="example"></div>
+  </body>
+</html>
