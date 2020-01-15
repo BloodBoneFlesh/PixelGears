@@ -2,10 +2,8 @@
   <head>
     <style>
       .cell {
-        width: 25px;
-        height: 25px;
-        border: 1px solid darkgrey;
-        margin: 2px;
+        width: 10px;
+        height: 10px;
       }
     </style>
 
@@ -35,15 +33,15 @@
 */
           let s = 70  
 
-          for(let h=0; h< 360 + 1; h+= 18){
+          for(let h=0; h< 360 + 1; h+= 9){
             let row = []
-            for(let l=0; l< 100 + 1; l+= 10){
+            for(let l=0; l< 100 + 1; l+= 4){
               row.push( [h, s, l ])
             } 
             colors.push(row);
           }
           return (
-            <table style={{width: '300px', height: '300px'}}><tbody>
+            <table style={{'border-spacing': 'unset'}}><tbody>
               { 
                 colors.map((e) => <tr key={Math.random()}>
                   {
