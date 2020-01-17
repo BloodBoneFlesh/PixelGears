@@ -50,18 +50,25 @@ function hslToRgb(_h: number, _s: number, _l: number, a: number) {
   return rgb;
 }
 
+type TileProps = {
+  press: Function,
+  colors: Object[]
+}
+
 class TileRow extends React.Component{
-  constructor(props: Object[]) {
+  _onPress: Function;
+  
+  constructor(props: TileProps) {
     super(props);
-    this._onPress = this.props.press;
+    this._onPress = props.press;
   }
 
   render() {
-    return (<View style={{ flexDirection: 'row',flex:1 }} key={Math.random()}>
+    return (<View style={{ flexDirection: 'row',flex:1, }} key={Math.random()}>
           {
             this.props.colors.map((r) => (
-              <TouchableOpacity style={{ flex:1 }} key={r.join(',')}  onPress={()=>this._onPress(r[0], r[1], r[2])}>
-                <View style={{ backgroundColor: `hsl(${r[0]}, ${r[1]}%, ${r[2]}%)`, flex:1 }} key={r.join(',')} />
+              <TouchableOpacity style={{ flex:1, }} key={r.join(',')}  onPress={()=>this._onPress(r[0], r[1], r[2])}>
+                <View style={{ backgroundColor: `hsl(${r[0]}, ${r[1]}%, ${r[2]}%)`, flex:1, margin: -0.5 }} key={r.join(',')} />
               </TouchableOpacity>
               )
             )
@@ -71,15 +78,15 @@ class TileRow extends React.Component{
 }
 
 class TilePanel extends React.Component{
-  constructor(props: Object[]) {
+  constructor(props: TileProps) {
     super(props);
 
     let l = 50;
 
     let colors = [];
-    for (let h = 0; h < 360 + 1; h += 9) {
+    for (let h = 0; h < 360 + 1; h += 24) {
       let row = [];
-      for (let s = 0; s < 100 + 1; s += 4) {
+      for (let s = 0; s < 100 + 1; s += 10) {
         row.push([h, s, l]);
       }
       colors.push(row);
@@ -90,9 +97,13 @@ class TilePanel extends React.Component{
     };
   }
 
+  shouldComponentUpdate(){
+    return false;
+  }
+
   render() {
     return (<View style={{
-      flexDirection: 'column', flex:1
+      flexDirection: 'column', flex:28
     }}>
       {
         this.state.colors.map((e) => <TileRow colors={e} press={this.props.press} key={Math.random()} />)
@@ -102,7 +113,7 @@ class TilePanel extends React.Component{
 }
 
 export class TileColorEdit extends React.Component {
-  constructor(props: Object[]) {
+  constructor(props: TileProps) {
     super(props);
 
     this.state = {
@@ -117,7 +128,7 @@ export class TileColorEdit extends React.Component {
     this._onPress = this._onPress.bind(this);
   }
 
-  _onPress(H, S, L){
+  _onPress(H: number, S: number, L: number){
     this.setState({color: {
       H: H,
       S: S,
@@ -126,37 +137,15 @@ export class TileColorEdit extends React.Component {
     },})
   }
 
-  render() {/*
+  render() {
     let colors_l = [];
-    for (let l = 0; l < 100 + 1; l += 4) {
+    for (let l = 0; l < 100 + 1; l += 10) {
       colors_l.push([this.state.color.H, this.state.color.S, l]);
     }
 
-    return (<View style={{
-      flexDirection: 'column', flex:1
-    }}>
-
-        <View style={{ flexDirection: 'row',flex:1 }} key={Math.random()}>
-          {
-            colors_l.map((r) => <TouchableOpacity style={{ flex:1 }} key={r.join(',')}  onPress={()=>console.warn(1)}>
-            <View style={{ backgroundColor: `hsl(${r[0]}, ${r[1]}%, ${r[2]}%)`, flex:1 }} key={r.join(',')} />
-          </TouchableOpacity>)
-          }
-        </View>
-
-        <View style={{ flex:1 }} key={'spacer'} /> 
-
-
-      {
-        colors.map((e) => <View style={{ flexDirection: 'row',flex:1 }} key={Math.random()}>
-          {
-            e.map((r) => <TouchableOpacity style={{ flex:1 }} key={r.join(',')}  onPress={()=>this._onPress(r[0], r[1], r[2])}>
-                <View style={{ backgroundColor: `hsl(${r[0]}, ${r[1]}%, ${r[2]}%)`, flex:1 }} key={r.join(',')} />
-              </TouchableOpacity>)
-          }
-        </View>)
-      }
-    </View>)*/
-    return <TilePanel />
+    return (<View style={{ flexDirection: 'column', flex:1 }}>
+      <TileRow colors={colors_l} press={this._onPress} />
+      <TilePanel press={this._onPress} />
+    </View>) 
   }
 }

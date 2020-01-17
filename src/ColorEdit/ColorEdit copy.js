@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { View, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 import Svg, {
   Line,
   Rect,
@@ -14,7 +15,7 @@ import Svg, {
   G,
 } from 'react-native-svg';
 
-import { SvgScroll } from './SvgScroll';
+import { SvgScroll } from '../SvgScroll';
 
 export class ColorEdit extends React.Component {
   constructor(props) {
@@ -211,6 +212,8 @@ export class ColorEdit extends React.Component {
     let start_angle = this.defineAngleByColor(this.state.color)
 
     return (
+      <View style={{flex:1, backgroundColor: 'yellow', margin: 25}}>
+
       <Svg onLayout={(event) => this.onLayout(event)}
         style={{ flex: 1, }}
       >
@@ -221,7 +224,7 @@ export class ColorEdit extends React.Component {
           >
             <Image
               x="0" y="0" width="8" height="8"
-              href={require('../pictures/pattern_8x8.png')}
+              href={require('../../pictures/pattern_8x8.png')}
             />
           </Pattern>
 
@@ -547,6 +550,8 @@ export class ColorEdit extends React.Component {
         <Use href={`#shape2`} stroke='black' strokeWidth={5} fill="none" />
 
       </Svg>
+      </View>
+      
     );
   }
 }

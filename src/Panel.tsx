@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
-import {styles} from '../styles';
+import {orientation, styles} from '../styles';
 
 export class Panel extends React.Component {
   render() {
-    return <View style={styles.Panel}>{this.props.children}</View>;
+    return <View style={[styles.Panel, orientation.landscape ? { flexDirection: 'column', } : {}]}>{this.props.children}</View>;
   }
 }

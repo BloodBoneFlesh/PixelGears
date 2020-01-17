@@ -3,6 +3,10 @@ import {StyleSheet} from 'react-native';
 
 export const PATTERN = require('./pictures/pattern_24x24.png');
 
+export let orientation =  {
+  landscape: false
+};
+
 export const styles = StyleSheet.create({
   Screen: {
     display: 'flex',
@@ -49,4 +53,18 @@ export const styles = StyleSheet.create({
     backgroundColor: '#FFFF',
     transform: [{rotate: '45deg'}],
   },
+  TestElement1:{
+    width: 50,
+    height: 50,
+    backgroundColor: 'red',
+    aspectRatio: 1,
+    margin: 10
+  },
+  TestElement2:{
+    width: 50,
+    height: 50,
+    backgroundColor: 'green',
+    aspectRatio: 1,
+    margin: 10
+  }
 });
