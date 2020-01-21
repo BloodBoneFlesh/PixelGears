@@ -4,7 +4,7 @@ import { NavigationActions, createAppContainer, NavigationScreenProp } from "rea
 import { createStackNavigator } from 'react-navigation-stack'
 import { Main } from "./Main";
 import { ColorEdit } from "./ColorEdit/ColorEdit";
-import { TextColorEdit } from "./ColorEdit/TextColorEdit";
+import { TextColorEdit } from "./ColorEdit/TextColorEdit/TextColorEdit";
 import { TestView1, TestView2 } from "./TestView";
 
 export function setNavigator(navigatorRef: any) {
