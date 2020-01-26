@@ -76,6 +76,7 @@ export class TextColorEdit extends React.Component {
     let color = this.state.color;
     color[c] = val;
     this.setState({ color })
+    console.log(this.state.color)
   }
 
   render() {
@@ -101,7 +102,16 @@ export class TextColorEdit extends React.Component {
         <View style={{ flexDirection: 'row' }}>
           <View style={{ flex: 3 }}>
             {this.FieldsGroup(["R", "G", "B"], 3)}
-            {this.FieldsGroup(["H", "E", "X"], 2)}
+            <GroupBox text={["HEX"]} style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+              {
+                ["HH", "E", "X"].map((el) => <CustomInput
+                  ref={el}
+                  reference={el}
+                  value={String(this.state.color[el])}
+                  length={2}
+                  setValue={(v) => this.setColor(el, v)} />
+                )}
+            </GroupBox>
             {this.FieldsGroup(["H", "S", "L"], 3)}
             {this.FieldsGroup(["C", "M", "Y", "K"], 3)}
           </View>
