@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 
 import { GroupBox } from './GroupBox'
 import { CustomInput } from './CustomInput'
+import {SuperEllipse} from '../../SuperEllipse'
 
 class Button extends React.Component {
   render() {
@@ -127,7 +128,9 @@ export class TextColorEdit extends React.Component {
               <Button text={el} press={() => this.press(el)} />
             )}
         </View>
-
+        <View style={{ flexDirection: 'row'}}>
+          <SuperEllipse />
+        </View>
       </View >
 
     )

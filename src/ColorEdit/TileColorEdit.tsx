@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { View, TouchableOpacity  } from 'react-native';
+import {SuperEllipse} from '../SuperEllipse'
 
 function hslToRgb(_h: number, _s: number, _l: number, a: number) {
   const h = _h / 360;
@@ -68,7 +69,7 @@ class TileRow extends React.Component{
           {
             this.props.colors.map((r) => (
               <TouchableOpacity style={{ flex:1, }} key={r.join(',')}  onPress={()=>this._onPress(r[0], r[1], r[2])}>
-                <View style={{ backgroundColor: `hsl(${r[0]}, ${r[1]}%, ${r[2]}%)`, flex:1, margin: -0.5 }} key={r.join(',')} />
+                <SuperEllipse color={`hsl(${r[0]}, ${r[1]}%, ${r[2]}%)`} key={r.join(',')}/>
               </TouchableOpacity>
               )
             )
@@ -84,9 +85,9 @@ class TilePanel extends React.Component{
     let l = 50;
 
     let colors = [];
-    for (let h = 0; h < 360 + 1; h += 24) {
+    for (let h = 0; h < 360 + 1; h += 16) {
       let row = [];
-      for (let s = 0; s < 100 + 1; s += 10) {
+      for (let s = 0; s < 100 + 1; s += 14) {
         row.push([h, s, l]);
       }
       colors.push(row);
@@ -103,7 +104,7 @@ class TilePanel extends React.Component{
 
   render() {
     return (<View style={{
-      flexDirection: 'column', flex:28
+      flexDirection: 'column', flex:16
     }}>
       {
         this.state.colors.map((e) => <TileRow colors={e} press={this.props.press} key={Math.random()} />)
@@ -143,7 +144,7 @@ export class TileColorEdit extends React.Component {
       colors_l.push([this.state.color.H, this.state.color.S, l]);
     }
 
-    return (<View style={{ flexDirection: 'column', flex:1 }}>
+    return (<View style={{ flexDirection: 'column', flex:1, backgroundColor: '#333' }}>
       <TileRow colors={colors_l} press={this._onPress} />
       <TilePanel press={this._onPress} />
     </View>) 
