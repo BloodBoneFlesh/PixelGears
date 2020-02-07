@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { View, TouchableOpacity  } from 'react-native';
-import {SuperEllipse} from '../SuperEllipse'
+import { View, TouchableOpacity } from 'react-native';
+import { SuperEllipse } from '../SuperEllipse'
 
 function hslToRgb(_h: number, _s: number, _l: number, a: number) {
   const h = _h / 360;
@@ -56,38 +56,39 @@ type TileProps = {
   colors: Object[]
 }
 
-class TileRow extends React.Component{
+class TileRow extends React.Component {
   _onPress: Function;
-  
+
   constructor(props: TileProps) {
     super(props);
     this._onPress = props.press;
   }
 
   render() {
-    return (<View style={{ flexDirection: 'row',flex:1, }} key={Math.random()}>
-          {
-            this.props.colors.map((r) => (
-              <TouchableOpacity style={{ flex:1, }} key={r.join(',')}  onPress={()=>this._onPress(r[0], r[1], r[2])}>
-                <SuperEllipse color={`hsl(${r[0]}, ${r[1]}%, ${r[2]}%)`} key={r.join(',')}/>
-              </TouchableOpacity>
-              )
-            )
-          }
-        </View>)
+    return (<View style={[{ flexDirection: 'row', flex: 1, }, this.props.style]} key={Math.random()}>
+      {
+        this.props.colors.map((r) => (
+          <TouchableOpacity style={{ flex: 1, }} key={r.join(',')} onPress={() => this._onPress(r[0], r[1], r[2])}>
+            <SuperEllipse color={`hsl(${r[0]}, ${r[1]}%, ${r[2]}%)`} key={r.join(',')} />
+          </TouchableOpacity>
+        )
+        )
+      }
+    </View>)
   }
 }
 
-class TilePanel extends React.Component{
+class TilePanel extends React.Component {
   constructor(props: TileProps) {
     super(props);
 
     let l = 50;
+    let r = this.props.r;
 
     let colors = [];
-    for (let h = 0; h < 360 + 1; h += 16) {
+    for (let h = 0; h < 360 + 1; h += r * 2.5) {
       let row = [];
-      for (let s = 0; s < 100 + 1; s += 14) {
+      for (let s = 0; s < 100 + 1; s += r) {
         row.push([h, s, l]);
       }
       colors.push(row);
@@ -98,13 +99,13 @@ class TilePanel extends React.Component{
     };
   }
 
-  shouldComponentUpdate(){
+  shouldComponentUpdate() {
     return false;
   }
 
   render() {
     return (<View style={{
-      flexDirection: 'column', flex:16
+      flexDirection: 'column', flex: 1 
     }}>
       {
         this.state.colors.map((e) => <TileRow colors={e} press={this.props.press} key={Math.random()} />)
@@ -129,24 +130,27 @@ export class TileColorEdit extends React.Component {
     this._onPress = this._onPress.bind(this);
   }
 
-  _onPress(H: number, S: number, L: number){
-    this.setState({color: {
-      H: H,
-      S: S,
-      L: L,
-      A: 255,
-    },})
+  _onPress(H: number, S: number, L: number) {
+    this.setState({
+      color: {
+        H: H,
+        S: S,
+        L: L,
+        A: 255,
+      },
+    })
   }
 
   render() {
     let colors_l = [];
-    for (let l = 0; l < 100 + 1; l += 10) {
+    let r = 14;
+    for (let l = 0; l < 100 + 1; l += r) {
       colors_l.push([this.state.color.H, this.state.color.S, l]);
     }
 
-    return (<View style={{ flexDirection: 'column', flex:1, backgroundColor: '#333' }}>
-      <TileRow colors={colors_l} press={this._onPress} />
-      <TilePanel press={this._onPress} />
-    </View>) 
+    return (<View style={{ flexDirection: 'column', flex: 1, backgroundColor: '#333' }}>
+      <TileRow colors={colors_l} press={this._onPress} style={{flex: (2.5*r)/360}}/>
+      <TilePanel r={r} press={this._onPress} />
+    </View>)
   }
 }

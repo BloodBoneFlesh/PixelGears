@@ -5,7 +5,7 @@ import Svg, { Path,} from 'react-native-svg';
 export class SuperEllipse extends Component{
     render(){
         return (
-            <View style={{ aspectRatio: 1, flex: 1 }}>
+            <View style={{ flex: 1 }}>
                 <Svg height="100%" width="100%" viewBox="0 0 100 100">
                     <Path
                         x = {1.5}
