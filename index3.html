@@ -1,0 +1,229 @@
+<html>
+  <head>
+    <style>
+      .cell {
+        width: 3px;
+        height: 3px;
+      }
+    </style>
+
+    <meta charset="UTF-8" />
+    <script>
+      function init() {
+        ReactDOM.render(
+            React.createElement(Player),
+            document.querySelector('#example'),
+          );
+      }
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"></script>
+    <script>
+    'use strict';
+
+// Количество семплов в одной секунде
+const SAMPLE_FREQUENCY = 44100;
+// Максимальная амплитуда волны
+const MAX_AMPLITUDE = 22000;
+// PI
+const PI = Math.PI;
+const PI_2 = PI*2;
+
+/******************************************************************************/
+
+/**
+ * Создание буфера данных
+ * @param {number} millisecond - длинна буффера в милиссекундах
+ * @returns {Int16Array} Подготовленный буффер
+ */
+function createBuffer(millisecond) {
+    let waveBytes = SAMPLE_FREQUENCY * 4 * millisecond / 1000;
+    return new Int16Array(new ArrayBuffer(waveBytes));
+}
+
+/**
+ * Создание объекта Audio с Wave Data переданным в buffer
+ * @param   {Int16Array} buffer Буффер в который производится запись
+ * @returns {Audio} Объект 'Audio'
+ */
+function createAudio(buffer) {
+    let bufferLen = buffer.length,
+        audioData = [],
+        fromCharCode = String.fromCharCode;
+    
+    for (let i = 0; i < bufferLen; i++) {
+        let b = buffer[i] / MAX_AMPLITUDE * 0x7800;
+        audioData.push(fromCharCode(b & 255, (b >> 8) & 255));
+    }
+    
+    return new Audio('data:audio/wav;base64,' + 
+        btoa(atob('UklGRti/UABXQVZFZm10IBAAAAABA' + 
+                  'AIARKwAABCxAgAEABAAZGF0YbS/UAA') +
+                    audioData.join('')));
+}
+
+/**
+ * Синтез тона
+ * @param   {Int16Array} buffer Буффер Wave данных
+ * @param   {number}     start  Место начала сигнага
+ * @param   {number}     length Длинна сигнала
+ * @param   {number}     freq   Частота сигнала
+ * @param   {number}     volume Громкость сигнала (От 0 до 1)
+ * @param   {function}   func   Функция - форма волны
+ * @returns {Int16Array} Буффер Wave данных
+ */
+
+function synthTone(buffer, start, length, freq, volume, func) {
+    start = start * SAMPLE_FREQUENCY * 2;
+    length = length * SAMPLE_FREQUENCY * 2;
+    freq = freq / SAMPLE_FREQUENCY;
+    volume = volume * 32767;
+    
+    for (let i = 0; i < length; i++) {
+        buffer[start + i] = func(start + i, freq) * volume;
+    }
+    
+    return buffer;
+}
+
+/* Форма волны ****************************************************************/
+
+/**
+ * Синусоидальная функция волны
+ * @param   {number} index     Номер текущего фрейма
+ * @param   {number} frequency Частота сигнала
+ * @returns {number} Значение сигнала в момент времени
+ */
+function sin(index, frequency) {
+    return Math.sin(PI_2 * frequency * index);
+}
+
+/**
+ * Пилообразная функция волны
+ * @param   {number} index     Номер текущего фрейма
+ * @param   {number} frequency Частота сигнала
+ * @returns {number} Значение сигнала в момент времени
+ */
+function saw(index, frequency) {	
+    return 2.0 * (index * frequency - 
+                Math.floor(index * frequency )) - 1.0;
+}
+
+/**
+ * Треугольная функция волны
+ * @param   {number} index     Номер текущего фрейма
+ * @param   {number} frequency Частота сигнала
+ * @returns {number} Значение сигнала в момент времени
+ */
+function triangle(index, frequency) {
+    return 2.0 * Math.abs(2.0 * 
+            (index * frequency -
+            Math.floor(index * frequency + 0.5))) - 1.0;
+}
+
+/**
+ * Прямоугольная функция волны
+ * @param   {number} index     Номер текущего фрейма
+ * @param   {number} frequency Частота сигнала
+ * @returns {number} Значение сигнала в момент времени
+ */
+function flat(index, frequency) {
+    return (Math.sin(frequency * index ) > 0) ? 1 : -1;
+}
+
+/**
+ * Функция волны типа "Шум"
+ * @returns {number} Значение сигнала в момент времени
+ */
+function noise() {
+    return Math.random();
+}
+
+/* Ноты **********************************************************************/
+
+/**
+ * Опредиление частоты звучания ноты по ее номеру и октаве
+ * @param   {number} key    Номер ноты
+ * @param   {number} octave Номер октавы
+ * @returns {number} Частота сигнала
+ */
+function noteToFreq(key, octave) {
+    if (!key) return 0;
+	return 27.5 * Math.pow(2, (key + octave * 12.0) / 12.0);
+}
+
+/**
+ * Опредиление частоты звучания ноты по ее строчной записи
+ * @param   {string} str Строчная запись ноты
+ * @returns {number} Чостота сигнала
+ */
+function getNote(str) {
+    let symb = ['C-', 'C#', 'D-', 'D#', 'E-', 'F-', 
+                'F#', 'G-', 'G#', 'A-', 'A#', 'B-'],
+        note = symb.indexOf(str.substr(0, 2)),
+        octave = parseInt(str.substr(2, 1), 10);
+    
+    return noteToFreq(note + 1, octave);
+}
+
+/******************************************************************************
+ *                                  MAIN
+******************************************************************************/
+
+function synthAndPlay() {
+        // Создаем буффер длинной в 10 сек
+    let buffer = createBuffer(10000), 
+        // Получаем частоту ноты ДО 3-ей октавы
+        note = getNote('C-3'),
+        volume = 0.7;  
+
+    // Синтез тона
+    synthTone(buffer, 0, 1, note, volume, sin);         // Синусоидальная волна
+    synthTone(buffer, 2, 1, note, volume, saw);         // Пилообразная волна
+    synthTone(buffer, 4, 1, note, volume, triangle);    // Треугольная волна
+    synthTone(buffer, 6, 1, note, volume, flat);        // Прямоугольная волна
+    synthTone(buffer, 8, 1, note, volume, noise);       // Шум
+
+    createAudio(buffer).play();
+}
+
+//*********************************
+
+let playButton = document.createElement('button');
+playButton.innerText = 'Play';
+playButton.addEventListener('click', synthAndPlay);
+document.body.appendChild(playButton);
+</script>
+    <script type="text/babel">
+      /*React.createElement( type,  [props],  [...children] )*/
+      
+      class Player extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {};
+        }
+
+        play(){
+          var context = new AudioContext();
+          var oscillator = context.createOscillator();
+          oscillator.type = 'sine'; // форма сигнала
+          oscillator.frequency.value = 500; // частота
+          oscillator.connect(context.destination);
+          // oscillator.start(); для запуска
+          // oscillator.stop(); для завершения
+        }
+
+        render() {
+          return <div>
+            
+            </div>
+        }
+      }
+    </script>
+  </head>
+  <body onload="init()">
+    <div id="example"></div>
+  </body>
+</html>

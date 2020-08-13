@@ -2,8 +2,8 @@
   <head>
     <style>
       .cell {
-        width: 10px;
-        height: 10px;
+        width: 3px;
+        height: 3px;
       }
     </style>
 
@@ -33,9 +33,9 @@
 */
           let s = 70  
 
-          for(let h=0; h< 360 + 1; h+= 9){
+          for(let h=0; h< 360 + 1; h+= 3){
             let row = []
-            for(let l=0; l< 100 + 1; l+= 4){
+            for(let l=0; l< 100 + 1; l+= 3){
               row.push( [h, s, l ])
             } 
             colors.push(row);
